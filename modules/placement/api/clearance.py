@@ -126,3 +126,20 @@ class OffCampusRecordView(APIView):
                                            **payload.validated_data)
         return Response(s.PlacementRecordDetailSerializer(record).data,
                         status=status.HTTP_201_CREATED)
+
+
+@extend_schema(request=s.PlacementRecordUpdateSerializer,
+               responses=s.PlacementRecordAdminSerializer)
+class PlacementRecordManageView(APIView):
+    """Correct or deactivate an existing placement record (PC-AFR-031)."""
+
+    permission_classes = [MODULE, HasPermission(P_MANAGE)]
+
+    def patch(self, request, pk):
+        payload = s.PlacementRecordUpdateSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        values = dict(payload.validated_data)
+        reason = values.pop("reason")
+        record = service.update_placement_record(
+            record_id=pk, actor=_actor(request), reason=reason, **values)
+        return Response(s.PlacementRecordAdminSerializer(record).data)

@@ -27,6 +27,7 @@ from modules.placement.services.authz import require
 log = logging.getLogger("fusion.placement.clearance")
 
 P_MANAGE = "placement_cell.record.manage"
+_UNSET = object()
 
 
 def _states(records) -> tuple[rules.RecordState, ...]:
@@ -170,6 +171,68 @@ def record_off_campus(*, season: str, user_id: int, company_id: int,
         is_active=True, recorded_by_user_id=actor.user_id)
     log.info("placement.clearance.off_campus user=%s company=%s by=%s",
              user_id, company_id, actor.user_id)
+    return record
+
+
+@transaction.atomic
+def update_placement_record(*, record_id: int, actor, reason: str,
+                            company_id: int | None = None,
+                            ctc_lpa: object = _UNSET, kind: str | None = None,
+                            is_active: bool | None = None) -> PlacementRecord:
+    """Correct a recorded placement or deactivate a mistaken record.
+
+    The correction reason is required by the API and included in the audit log.
+    Company is editable only for off-campus records; a campus record's company
+    comes from its accepted offer and cannot be changed independently.
+    """
+    require(actor, P_MANAGE)
+    record = (PlacementRecord.objects.select_for_update()
+              .select_related("policy", "company", "posting")
+              .filter(pk=record_id).first())
+    if record is None:
+        raise NotFoundError("No such placement record.")
+
+    before = {
+        "company_id": record.company_id,
+        "ctc_lpa": str(record.ctc_lpa) if record.ctc_lpa is not None else None,
+        "kind": record.kind,
+        "is_active": record.is_active,
+    }
+
+    if company_id is not None:
+        if record.source != "off_campus":
+            raise ConflictError(
+                "The company for a campus placement comes from its accepted offer.",
+                code="company_from_offer")
+        company = Company.objects.filter(pk=company_id).first()
+        if company is None:
+            raise NotFoundError("No such company.")
+        record.company = company
+
+    if ctc_lpa is not _UNSET:
+        record.ctc_lpa = ctc_lpa
+    if kind is not None:
+        record.kind = kind.strip()
+    if is_active is not None:
+        if is_active and not record.is_active and PlacementRecord.objects.filter(
+                policy=record.policy, user_id=record.user_id,
+                is_active=True).exclude(pk=record.pk).exists():
+            raise ConflictError(
+                "This student already has another active placement for the season.",
+                code="already_placed")
+        record.is_active = is_active
+
+    record.save(update_fields=["company", "ctc_lpa", "kind", "is_active",
+                               "updated_at"])
+    after = {
+        "company_id": record.company_id,
+        "ctc_lpa": str(record.ctc_lpa) if record.ctc_lpa is not None else None,
+        "kind": record.kind,
+        "is_active": record.is_active,
+    }
+    log.info("placement.record.corrected record=%s user=%s by=%s reason=%s "
+             "before=%s after=%s", record.pk, record.user_id, actor.user_id,
+             reason.strip()[:300], before, after)
     return record
 
 

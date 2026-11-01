@@ -98,6 +98,8 @@ urlpatterns = [
          name="placement-outstanding-letters"),
     path("records/off-campus", cl.OffCampusRecordView.as_view(),
          name="placement-off-campus-record"),
+    path("records/<int:pk>/manage", cl.PlacementRecordManageView.as_view(),
+         name="placement-record-manage"),
 
     # conduct and sanctions (rules 18, 19, 21)
     path("conduct/incidents", c.IncidentListView.as_view(),

@@ -625,6 +625,43 @@ class PlacementRecordDetailSerializer(serializers.ModelSerializer):
         return obj.offer_letter_id is not None
 
 
+class PlacementRecordUpdateSerializer(serializers.Serializer):
+    """Fields the placement office may correct on an existing record."""
+
+    company_id = serializers.IntegerField(required=False, min_value=1)
+    ctc_lpa = serializers.DecimalField(max_digits=8, decimal_places=2,
+                                       required=False, allow_null=True,
+                                       min_value=0)
+    kind = serializers.CharField(required=False, max_length=12, allow_blank=False)
+    is_active = serializers.BooleanField(required=False)
+    reason = serializers.CharField(max_length=300, allow_blank=False)
+
+    def validate_reason(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("A correction reason is required.")
+        return value
+
+    def validate(self, attrs):
+        if not any(field in attrs for field in
+                   ("company_id", "ctc_lpa", "kind", "is_active")):
+            raise serializers.ValidationError(
+                "Provide at least one placement field to update.")
+        return attrs
+
+
+class PlacementRecordAdminSerializer(serializers.ModelSerializer):
+    """Placement office view of a corrected record."""
+
+    company = CompanyBriefSerializer(read_only=True)
+
+    class Meta:
+        model = PlacementRecord
+        fields = ("id", "user_id", "company", "source", "kind", "ctc_lpa",
+                  "is_active", "created_at", "updated_at")
+        read_only_fields = fields
+
+
 class ClearanceSerializer(serializers.Serializer):
     """Rule 24. `blocking` names each company, so a refusal is actionable."""
 
