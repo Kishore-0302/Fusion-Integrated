@@ -16,6 +16,7 @@ urlpatterns = [
     path("api/v1/", include("fusion_auth.urls")),
     path("api/v1/directory/", include("modules.directory.api.urls")),
     path("api/v1/placement/", include("modules.placement.api.urls")),
+    path("api/v1/placement-cell/", include("modules.placement_cell.api.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
 ]
