@@ -339,3 +339,81 @@ def bulk_transition(*, application_ids: Sequence[int], to_status: str, actor,
              to_status, moved, len(outcomes) - moved,
              getattr(actor, "user_id", None))
     return outcomes
+
+
+# -- Submit an application (PR 445 / PBI 17) -----------------------------------
+@transaction.atomic
+def submit_application(user_id: int, posting_id: int, facts: dict) -> Application:
+    """Submit an application for a job posting.
+
+    Args:
+        user_id: The ID of the user applying.
+        posting_id: The ID of the job posting.
+        facts: Facts about the student (cpi, discipline, active_backlogs, etc.).
+
+    Returns:
+        The created and submitted Application.
+
+    Raises:
+        NotFoundError: If the job posting does not exist.
+        ValidationError: If the application window is closed, student is ineligible,
+                         or student has already applied.
+        ConflictError: If the placement policy for the posting's season is missing.
+    """
+    from django.core.exceptions import ValidationError
+
+    from modules.placement.domain.eligibility import evaluate_student_eligibility
+
+    posting = JobPosting.objects.filter(pk=posting_id).first()
+    if posting is None:
+        raise NotFoundError("No such posting.")
+    if posting.status != "published" or (posting.closes_at and timezone.now() > posting.closes_at):
+        raise ValidationError("The application window has closed.")
+
+    policy = PlacementPolicy.objects.filter(season=posting.placement_year).first()
+    if policy is None:
+        raise ConflictError(
+            f"No placement policy is configured for {posting.placement_year}.",
+            code="policy_missing",
+        )
+
+    is_eligible, errors = evaluate_student_eligibility(facts, posting.eligibility_rule)
+    if not is_eligible:
+        raise ValidationError(errors[0] if errors else "Student is not eligible.")
+
+    if Application.objects.filter(posting=posting, user_id=user_id).exists():
+        raise ValidationError("You have already applied to this posting.")
+
+    application = Application.objects.create(
+        posting=posting,
+        user_id=user_id,
+        status=sm.SUBMITTED,
+        cpi_at_apply=facts.get("cpi"),
+        semester_at_apply=facts.get("semester"),
+        standing_declared_seq_at_apply=facts.get("declared_seq"),
+        eligibility_snapshot=facts,
+    )
+
+    ApplicationTransition.objects.create(
+        application=application,
+        from_status=sm.DRAFT,
+        to_status=sm.SUBMITTED,
+        actor_label="student",
+        reason="Application submitted",
+    )
+
+    notifications.enqueue(
+        topic="application.submitted",
+        dedupe_key=f"application.submitted:{application.pk}:{sm.SUBMITTED}",
+        subject=f"Application received — {posting.title}",
+        body=f"Your application for {posting.title} has been submitted.",
+        recipient_user_id=user_id,
+        payload={
+            "application_id": application.pk,
+            "posting_id": posting_id,
+            "title": posting.title,
+        },
+    )
+
+    return application
+

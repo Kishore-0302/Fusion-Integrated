@@ -1,8 +1,9 @@
 import {
-  Alert, Badge, Button, Card, Container, Grid, Group, Progress, SimpleGrid,
+  Alert, Badge, Button, Card, Container, Grid, Group, Progress, Select, SimpleGrid,
   Stack, Table, Text,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+import { useState } from "react";
 import { FaChartBar, FaDownload, FaInfoCircle } from "react-icons/fa";
 
 import { useAuth } from "../../../auth/AuthProvider";
@@ -125,7 +126,8 @@ function Metric({ label, value, hint }: {
 }
 
 export default function ReportsPage() {
-  const { data, isPending, error } = useStats();
+  const [season, setSeason] = useState("2026-27");
+  const { data, isPending, error } = useStats(season);
   const { can } = useAuth();
   const isStaff = can("placement_cell.report.view");
 
@@ -137,6 +139,13 @@ export default function ReportsPage() {
     return (
       <Container size="lg">
         <PageHeader title="Placement Statistics" subtitle={data.season} />
+        <Select
+          label="Placement Season"
+          value={season}
+          onChange={(val) => val && setSeason(val)}
+          data={["2024-25", "2025-26", "2026-27"]}
+          mb="md"
+        />
         <Alert variant="light" color="blue" icon={<FaInfoCircle />}
           title="Statistics are not published yet">
           <Text size="sm">
@@ -153,9 +162,17 @@ export default function ReportsPage() {
       <PageHeader
         title={isStaff ? "Placement Reports" : "Placement Statistics"}
         subtitle={isStaff
-          ? `Operational figures for ${data?.season}`
-          : `Anonymised figures for ${data?.season}`}
+          ? `Operational figures for ${data?.season ?? season}`
+          : `Anonymised figures for ${data?.season ?? season}`}
         action={isStaff ? <ExportActions /> : undefined}
+      />
+
+      <Select
+        label="Placement Season"
+        value={season}
+        onChange={(val) => val && setSeason(val)}
+        data={["2024-25", "2025-26", "2026-27"]}
+        mb="md"
       />
 
       <SimpleGrid cols={{ base: 2, sm: 4 }} mb="md">

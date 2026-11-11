@@ -626,28 +626,30 @@ class PlacementRecordDetailSerializer(serializers.ModelSerializer):
 
 
 class PlacementRecordUpdateSerializer(serializers.Serializer):
-    """Fields the placement office may correct on an existing record."""
+    """Fields the placement office may correct on an existing record (PC-AFR-031, PR 445)."""
 
+    id = serializers.IntegerField(required=False)
     company_id = serializers.IntegerField(required=False, min_value=1)
     ctc_lpa = serializers.DecimalField(max_digits=8, decimal_places=2,
                                        required=False, allow_null=True,
                                        min_value=0)
     kind = serializers.CharField(required=False, max_length=12, allow_blank=False)
     is_active = serializers.BooleanField(required=False)
-    reason = serializers.CharField(max_length=300, allow_blank=False)
+    verified_by_user_id = serializers.IntegerField(required=False, allow_null=True)
+    is_accepted = serializers.BooleanField(required=False)
+    reason = serializers.CharField(max_length=300, required=False, allow_blank=True, default="")
 
     def validate_reason(self, value):
-        value = value.strip()
-        if not value:
-            raise serializers.ValidationError("A correction reason is required.")
-        return value
+        return (value or "").strip()
 
     def validate(self, attrs):
-        if not any(field in attrs for field in
-                   ("company_id", "ctc_lpa", "kind", "is_active")):
+        updatable = ("company_id", "ctc_lpa", "kind", "is_active",
+                     "verified_by_user_id", "is_accepted")
+        if not any(field in attrs for field in updatable):
             raise serializers.ValidationError(
                 "Provide at least one placement field to update.")
         return attrs
+
 
 
 class PlacementRecordAdminSerializer(serializers.ModelSerializer):

@@ -147,3 +147,16 @@ def allowed_targets(frm: str, actor_kind: str | None = None) -> list[str]:
     return sorted(t.to for t in TRANSITIONS
                   if t.frm == frm
                   and (actor_kind is None or actor_kind in t.actors))
+
+
+def transition_application_state(current_state: str, action: str, actor_role: str) -> str:
+    """Validate and compute state transitions for external callers (PR 445 / PBI 17)."""
+    try:
+        transition = resolve(current_state, action, actor_role)
+    except (InvalidTransition, ActorNotAllowed) as exc:
+        msg = f"Invalid transition from {current_state} to {action} for {actor_role}"
+        raise ValueError(msg) from exc
+    else:
+        return transition.to
+
+

@@ -88,8 +88,61 @@ def update(*, posting_id: int, actor, scope=None, **fields) -> JobPosting:
 
 
 @transaction.atomic
+def submit(*, posting_id: int, actor, scope=None) -> JobPosting:
+    """Company submits a complete draft opportunity for TPO review (PC-UC-015, BW-PC-02).
+
+    Validates company authorization (PC-BR-006, PC-BR-007), required content (PC-BR-003),
+    closed eligibility vocabulary (PC-BR-004), and future deadline before transitioning
+    status to 'pending_approval'.
+    """
+    require(actor, P_MANAGE, allow_recruiter=True)
+    if getattr(actor, "kind", None) != "recruiter":
+        from core.api.exceptions import PermissionDeniedError
+        raise PermissionDeniedError("Only a Company/Recruiter can submit an opportunity.",
+                                    code="company_submission_required")
+
+    qs = scope if scope is not None else JobPosting.objects.all()
+    posting = (qs.select_for_update().select_related("company")
+               .filter(pk=posting_id).first())
+    if posting is None:
+        raise NotFoundError("No such posting.")
+    if posting.status != "draft":
+        raise ConflictError("Only a draft opportunity can be submitted for review.",
+                            code="not_submittable")
+    if not posting.company.can_operate:
+        raise ConflictError("This company is not approved for recruitment yet.",
+                            code="company_not_approved")
+
+    missing = []
+    if not (posting.description or "").strip():
+        missing.append("description")
+    if not posting.eligibility_rule:
+        missing.append("eligibility_rule")
+    if posting.closes_at is None:
+        missing.append("closes_at")
+    if missing:
+        raise ConflictError(
+            "Add a description, eligibility criteria and deadline before submitting.",
+            code="incomplete_posting",
+            details=[{"field": field} for field in missing],
+        )
+    if posting.closes_at <= timezone.now():
+        raise ConflictError("The application deadline is already past.",
+                            code="deadline_in_past")
+
+    validate_rule(posting.eligibility_rule)
+    posting.status = "pending_approval"
+    posting.save(update_fields=["status", "updated_at"])
+    return posting
+
+
+@transaction.atomic
 def publish(*, posting_id: int, actor, scope=None) -> JobPosting:
-    """Make a posting visible and freeze its criteria (PC-BR-003)."""
+    """Make a posting visible and freeze its criteria (PC-BR-003, PC-BR-005)."""
+    if getattr(actor, "kind", None) == "recruiter":
+        from core.api.exceptions import PermissionDeniedError
+        raise PermissionDeniedError("Only Placement Cell staff can publish.",
+                                    code="tpo_publication_required")
     require(actor, P_MANAGE, allow_recruiter=True)
     qs = scope if scope is not None else JobPosting.objects.all()
     posting = (qs.select_for_update().select_related("company")
@@ -98,6 +151,9 @@ def publish(*, posting_id: int, actor, scope=None) -> JobPosting:
         raise NotFoundError("No such posting.")
     if posting.status == "published":
         return posting
+    if posting.created_by_recruiter_id is not None and posting.status != "pending_approval":
+        raise ConflictError("Submit the opportunity before TPO publication.",
+                            code="submission_required")
     if posting.status not in ("draft", "pending_approval"):
         raise ConflictError(f"A {posting.status} posting cannot be published.",
                             code="not_publishable")

@@ -32,8 +32,10 @@ from modules.placement.models.postings import (
     JobPosting,
 )
 from modules.placement.models.students import (
+    DebarmentRecord,
     PlacementRegistration,
     ProfileDocument,
+    StudentClearance,
 )
 
 __all__ = [
@@ -43,6 +45,7 @@ __all__ = [
     "Company",
     "CompanyContact",
     "ConductIncident",
+    "DebarmentRecord",
     "InterviewRound",
     "JobPosting",
     "NotificationOutbox",
@@ -57,4 +60,5 @@ __all__ = [
     "RecruiterLoginAttempt",
     "RecruiterSession",
     "RoundParticipation",
+    "StudentClearance",
 ]

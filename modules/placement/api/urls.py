@@ -14,6 +14,8 @@ urlpatterns = [
     path("postings", v.PostingListView.as_view(), name="placement-postings"),
     path("postings/<int:pk>", v.PostingDetailView.as_view(),
          name="placement-posting"),
+    path("postings/<int:pk>/submit", v.PostingSubmitView.as_view(),
+         name="placement-posting-submit"),
     path("postings/<int:pk>/publish", v.PostingPublishView.as_view(),
          name="placement-posting-publish"),
     path("postings/<int:pk>/eligibility", v.PostingEligibilityView.as_view(),
@@ -100,6 +102,8 @@ urlpatterns = [
          name="placement-off-campus-record"),
     path("records/<int:pk>/manage", cl.PlacementRecordManageView.as_view(),
          name="placement-record-manage"),
+    path("records/<int:pk>/update", v.PlacementRecordUpdateView.as_view(),
+         name="placement-record-update"),
 
     # conduct and sanctions (rules 18, 19, 21)
     path("conduct/incidents", c.IncidentListView.as_view(),

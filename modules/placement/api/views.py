@@ -155,6 +155,18 @@ class PostingDetailView(_Scoped, generics.RetrieveUpdateAPIView):
 
 
 @extend_schema(request=None, responses=s.JobPostingSerializer)
+class PostingSubmitView(_Scoped, APIView):
+    """Company recruiter submits draft opportunity for TPO review (PC-UC-015)."""
+    permission_classes = [MODULE]
+
+    def post(self, request, pk):
+        posting = posting_service.submit(
+            posting_id=pk, actor=_actor(request),
+            scope=scoping.postings_for(_actor(request)))
+        return Response(s.JobPostingSerializer(posting).data)
+
+
+@extend_schema(request=None, responses=s.JobPostingSerializer)
 class PostingPublishView(_Scoped, APIView):
     permission_classes = [MODULE]
 
@@ -659,3 +671,62 @@ class RecruiterMeView(_Scoped, APIView):
                         "approval_status": account.company.approval_status},
             "modules": list(actor.modules),
         })
+
+
+# -- Placement Records (PR 445 / PBI 17) ---------------------------------------
+class PlacementRecordUpdateView(_Scoped, generics.UpdateAPIView):
+    serializer_class = s.PlacementRecordUpdateSerializer
+    permission_classes = [
+        MODULE,
+        HasPermission("placement_cell.record.manage", "placement.manage_records", "tpo_admin"),
+    ]
+
+    def get_queryset(self):
+        return scoping.placement_records_for(_actor(self.request))
+
+    def update(self, request, *args, **kwargs):
+        actor = _actor(request)
+        payload = s.PlacementRecordUpdateSerializer(data=request.data, partial=True)
+        payload.is_valid(raise_exception=True)
+        data = dict(payload.validated_data)
+
+        record = self.get_object()
+        old_values = {
+            "ctc_lpa": record.ctc_lpa,
+            "kind": record.kind,
+            "is_active": record.is_active,
+            "recorded_by_user_id": record.recorded_by_user_id,
+        }
+
+        if "ctc_lpa" in data:
+            record.ctc_lpa = data["ctc_lpa"]
+        if "kind" in data:
+            record.kind = data["kind"]
+        if "is_active" in data:
+            record.is_active = data["is_active"]
+        if "verified_by_user_id" in data:
+            record.recorded_by_user_id = data["verified_by_user_id"]
+        if "is_accepted" in data and not data["is_accepted"]:
+            record.is_active = False
+
+        record.save()
+
+        new_values = {
+            "ctc_lpa": record.ctc_lpa,
+            "kind": record.kind,
+            "is_active": record.is_active,
+            "recorded_by_user_id": record.recorded_by_user_id,
+        }
+
+        import structlog
+        logger = structlog.get_logger("placement.audit")
+        logger.info(
+            "placement_record.updated",
+            actor_id=getattr(actor, "user_id", None),
+            record_id=record.pk,
+            old=old_values,
+            new=new_values,
+        )
+
+        return Response(s.PlacementRecordSerializer(record).data)
+

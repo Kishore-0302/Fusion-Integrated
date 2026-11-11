@@ -204,3 +204,34 @@ def announcements_for(actor) -> QuerySet[Announcement]:
     if _is_alumni(actor):
         return visible.filter(audience__in=("alumni", "all"))
     return visible.filter(audience__in=("students", "registered", "all"))
+
+
+# -- Scoped applications helper (PR 445 / PBI 17) ------------------------------
+
+def scope_applications_queryset(
+    qs: QuerySet[Application],
+    user,
+    user_roles: list[str] | set[str] | tuple[str, ...],
+    company_id: int | None = None,
+) -> QuerySet[Application]:
+    """Scope applications queryset by user role and context."""
+    roles = set(user_roles or [])
+    if "tpo_admin" in roles or "placement_chairman" in roles or "staff" in roles:
+        return qs.all()
+    if "recruiter" in roles:
+        if company_id is None:
+            return qs.none()
+        return qs.filter(posting__company_id=company_id)
+    if "student" in roles:
+        user_id = (
+            getattr(user, "id", None)
+            or getattr(user, "user_id", None)
+            or (user if isinstance(user, int) else None)
+        )
+        if user_id is None:
+            return qs.none()
+        return qs.filter(user_id=user_id)
+    if "alumni" in roles:
+        return qs.none()
+    return qs.none()
+

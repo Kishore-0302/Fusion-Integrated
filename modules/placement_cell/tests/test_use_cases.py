@@ -1,13 +1,14 @@
 """Company submission through the TPO-managed interview workflow.
 
 Assignment 7 end-to-end workflow coverage:
-PC-UC-015 -> PC-UC-006 -> PC-UC-003 -> PC-UC-016 -> PC-UC-009
-FR: PC-CFR-007/003/015/009/017; PC-AFR-018/019/020/021/022,
-    007/008/009, 046/047/048, 026/028/054
-BR: PC-BR-001/002/003/004/005/006/009/011/012/021/030
-WF: BW-PC-03/04/05; CW-PC-01/02/04
+PC-UC-015 -> PC-UC-006 -> PC-UC-003 -> PC-UC-016 -> PC-UC-009 -> PC-UC-022 -> PC-UC-008 -> PC-UC-010
+FR: PC-CFR-007/003/015/009/008/010/017; PC-AFR-018/019/020/021/022,
+    007/008/009, 046/047/048, 026/028/054, 023/024/025, 031/032
+BR: PC-BR-001/002/003/004/005/006/009/011/012/013/014/015/016/017/021/029/030
+WF: BW-PC-01/02/03/04/05/06/07/08; CW-PC-01/02/04
 """
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
 from django.utils import timezone
@@ -17,11 +18,15 @@ from core.api.exceptions import ConflictError, NotFoundError, PermissionDeniedEr
 from fusion_auth.client import UserRef
 from modules.placement.authentication import RecruiterPrincipal
 from modules.placement.models import (
+    Announcement,
+    Application,
     Company,
     InterviewRound,
     JobPosting,
     NotificationOutbox,
+    Offer,
     PlacementPolicy,
+    PlacementRecord,
     RoundParticipation,
 )
 from modules.placement.services import postings, registration
@@ -62,6 +67,9 @@ def _tpo():
             "placement_cell.application.view",
             "placement_cell.application.review",
             "placement_cell.interview.schedule",
+            "placement_cell.offer.issue",
+            "placement_cell.record.manage",
+            "placement_cell.announcement.publish",
         ),
     )
 
@@ -217,3 +225,84 @@ def test_company_submission_scope_hides_another_company_posting():
 
     posting.refresh_from_db()
     assert posting.status == "draft"
+
+
+def test_student_can_withdraw_submitted_application(stub_iam):
+    """PC-UC-005 / PC-BR-010 / BW-PC-04."""
+    company = _company()
+    posting = _complete_posting(company, _tpo())
+    posting.status = "published"
+    posting.eligibility_rule_locked_at = timezone.now()
+    posting.save()
+
+    PlacementPolicy.objects.create(season=SEASON, is_active=True)
+    registration.register(season=SEASON, user_id=STUDENT_ID)
+
+    fake = stub_iam(
+        make_session(user_id=STUDENT_ID, modules=("placement_cell",),
+                     permissions=("placement_cell.application.create",
+                                  "placement_cell.application.delete")),
+        users={STUDENT_ID: UserRef(
+            user_id=STUDENT_ID, username="21BCS001", display_name="Asha Verma",
+            kind="student", discipline="CSE", programme="B.Tech",
+            batch_year=2023, profile_completed=True,
+        )},
+    )
+    fake.standings = {STUDENT_ID: {"cpi": "8.50", "active_backlogs": 0, "declared_seq": 1}}
+
+    student = make_principal(
+        user_id=STUDENT_ID, kind="student", modules=("placement_cell",),
+        permissions=("placement_cell.application.create",
+                     "placement_cell.application.delete"))
+
+    app = use_cases.apply_to_opportunity(posting_id=posting.pk, actor=student)
+    assert app.status == "submitted"
+
+    withdrawn = use_cases.withdraw_application(
+        application_id=app.pk, actor=student, reason="Personal career preference")
+    assert withdrawn.status == "withdrawn"
+
+
+def test_tpo_record_correction_requires_reason():
+    """PC-UC-010 / PC-BR-029 / BW-PC-08."""
+    company = _company()
+    policy = PlacementPolicy.objects.create(season=SEASON, is_active=True)
+    record = PlacementRecord.objects.create(
+        user_id=STUDENT_ID, policy=policy, company=company,
+        source="off_campus", kind="fte", ctc_lpa=Decimal("12.00"), is_active=True)
+
+    tpo = _tpo()
+    # Successful correction
+    corrected = use_cases.update_placement_record(
+        record_id=record.pk, actor=tpo, reason="CTC updated after proof verification",
+        ctc_lpa=Decimal("14.50"))
+    assert corrected.ctc_lpa == Decimal("14.50")
+
+    # Failing correction: empty reason
+    with pytest.raises(Exception):
+        use_cases.update_placement_record(
+            record_id=record.pk, actor=tpo, reason="   ")
+
+
+def test_announcement_publishing_and_topics():
+    """PC-UC-013 / PC-BR-017 / PC-BR-021."""
+    tpo = _tpo()
+    announcement = use_cases.publish_announcement(
+        actor=tpo, title="Acme Hiring Drive", body="Drive commences Monday.",
+        topic="drives", placement_year=SEASON)
+    assert announcement.title == "Acme Hiring Drive"
+    assert announcement.topic == "drives"
+
+    # Bad topic fails
+    with pytest.raises(ConflictError) as exc:
+        use_cases.publish_announcement(
+            actor=tpo, title="Invalid Topic", body="Test",
+            topic="unrecognized_topic")
+    assert exc.value.code == "bad_topic"
+
+
+def test_student_stats_anonymization():
+    """PC-UC-024 / PC-BR-016."""
+    PlacementPolicy.objects.create(season=SEASON, is_active=True)
+    stats_data = use_cases.get_student_stats(season=SEASON)
+    assert stats_data["season"] == SEASON

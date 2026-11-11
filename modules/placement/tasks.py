@@ -69,3 +69,14 @@ def rebuild_active_stats() -> int:
     rows = sum(rebuild_stats(season=s) for s in seasons)
     log.info("placement.stats.rebuilt seasons=%d rows=%d", len(seasons), rows)
     return rows
+
+
+@shared_task(name="placement.expire_pending_offers", acks_late=True)
+def expire_pending_offers() -> int:
+    """Expire offers that are past their deadline (PR 445 / PBI 17)."""
+    from modules.placement.services import offers
+
+    count = offers.expire_overdue()
+    log.info("placement.offers.expired count=%d", count)
+    return count
+

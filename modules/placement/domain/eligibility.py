@@ -200,3 +200,57 @@ def failure_reasons(outcome: Outcome) -> list[dict]:
          "actual": o.actual, "message": describe(o)}
         for o in outcome.outcomes if not o.passed
     ]
+
+
+# -- Dynamic eligibility verification (PR 445 / PBI 17) -----------------------
+
+def evaluate_student_eligibility(
+    student_facts: dict | None,
+    posting_criteria: dict | None,
+) -> tuple[bool, list[str]]:
+    """Evaluate student eligibility against posting criteria.
+
+    Supports both dictionary-based criteria (PR 445: min_cpi, eligible_branches,
+    max_backlogs) and native AST rule dictionaries (Fusion: gte, all, in, etc.).
+    """
+    student_facts = student_facts or {}
+    posting_criteria = posting_criteria or {}
+
+    if student_facts.get("is_debarred"):
+        return False, ["Student is debarred"]
+
+    min_cpi = posting_criteria.get("min_cpi")
+    if min_cpi is not None:
+        cpi = student_facts.get("cpi")
+        try:
+            if cpi is None or float(cpi) < float(min_cpi):
+                return False, ["CPI below cutoff"]
+        except (ValueError, TypeError):
+            return False, ["CPI below cutoff"]
+
+    eligible_branches = posting_criteria.get("eligible_branches")
+    if eligible_branches:
+        discipline = student_facts.get("discipline")
+        norm_branches = {str(b).strip().lower() for b in eligible_branches if str(b).strip()}
+        if not discipline or str(discipline).strip().lower() not in norm_branches:
+            return False, ["Branch not eligible"]
+
+    max_backlogs = posting_criteria.get("max_backlogs")
+    if max_backlogs is not None:
+        active_backlogs = student_facts.get("active_backlogs", 0)
+        try:
+            if active_backlogs is not None and int(active_backlogs) > int(max_backlogs):
+                return False, ["Active backlogs present"]
+        except (ValueError, TypeError):
+            return False, ["Active backlogs present"]
+
+    # If posting_criteria is an AST rule, evaluate using the engine
+    ast_ops = {"all", "any", "gte", "gt", "lte", "lt", "eq", "ne", "in", "not_in"}
+    if any(k in ast_ops for k in posting_criteria):
+        outcome = evaluate(posting_criteria, student_facts)
+        if not outcome.is_eligible:
+            reasons = [r["message"] for r in failure_reasons(outcome) if r.get("message")]
+            return False, reasons or ["Ineligible according to posting criteria"]
+
+    return True, []
+

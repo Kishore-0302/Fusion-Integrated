@@ -121,3 +121,40 @@ class PlacementRegistration(TimeStampedModel, UserScopedModel):
 
     def __str__(self) -> str:
         return f"reg u{self.user_id} {self.policy_id} {self.status}"
+
+
+# -- Student clearance and debarment records (PR 445 / PBI 17) -----------------
+
+class StudentClearance(TimeStampedModel, UserScopedModel):
+    """A record of a student's clearance status."""
+
+    academic_year = models.CharField(max_length=10)
+    is_cleared = models.BooleanField(default=False)
+    clearance_reason = models.TextField(blank=True, default="")
+    verified_by_user_id = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_student_clearance"
+        indexes = [models.Index(fields=["user_id", "academic_year"],
+                                name="clearance_user_year_idx")]
+
+    def __str__(self) -> str:
+        return f"clr u{self.user_id} {self.academic_year}"
+
+
+class DebarmentRecord(TimeStampedModel, UserScopedModel):
+    """A record of a student's debarment status."""
+
+    season = models.CharField(max_length=20)
+    is_debarred = models.BooleanField(default=True)
+    reason = models.TextField(blank=True, default="")
+    debarred_until = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "placement_debarment_record"
+        indexes = [models.Index(fields=["user_id", "season"],
+                                name="debarment_user_season_idx")]
+
+    def __str__(self) -> str:
+        return f"deb u{self.user_id} {self.season}"
+
