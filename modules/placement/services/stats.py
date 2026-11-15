@@ -34,6 +34,15 @@ def _median(values: list[Decimal]) -> Decimal | None:
     return (ordered[mid - 1] + ordered[mid]) / 2
 
 
+def _counted_records(policy: PlacementPolicy):
+    """Active placements of registered students: a debarred or opted-out student
+    leaves the numerator as well as the denominator."""
+    registered = PlacementRegistration.objects.filter(
+        policy=policy, status="registered").values("user_id")
+    return PlacementRecord.objects.filter(policy=policy, is_active=True,
+                                          user_id__in=registered)
+
+
 @transaction.atomic
 def rebuild(*, season: str) -> int:
     """Recompute every snapshot for a season. Idempotent."""
@@ -41,8 +50,7 @@ def rebuild(*, season: str) -> int:
     if policy is None:
         return 0
 
-    records = list(PlacementRecord.objects.filter(policy=policy, is_active=True)
-                   .select_related("company"))
+    records = list(_counted_records(policy).select_related("company"))
     registered = PlacementRegistration.objects.filter(
         policy=policy, status="registered").count()
     offers = Application.objects.filter(
@@ -134,7 +142,7 @@ def staff_view(*, season: str) -> dict:
     if policy is None:
         return {"season": season, "available": False}
 
-    records = PlacementRecord.objects.filter(policy=policy, is_active=True)
+    records = _counted_records(policy)
     agg = records.aggregate(n=Count("id"), mean=Avg("ctc_lpa"), top=Max("ctc_lpa"))
     ctcs = [r for r in records.values_list("ctc_lpa", flat=True) if r is not None]
 
