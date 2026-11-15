@@ -10,8 +10,10 @@ You work as a pair on one module, in two phases. Both of you read this whole gui
 anything else.
 
 1. **Student 1 builds, alone, until 10/10.** Steps 1 to 7 are Student 1's, exactly as written:
-   build the module with one AI tool and review it until it scores 10/10. Student 2 also reads
-   the spec (Step 1), sets up (Step 2) and follows Steps 3 to 5 for Student 2's own tool.
+   build the module with one AI tool and review it until it scores 10/10. Student 2's only part
+   before then is to approve, in writing, what Student 1's prompt asks to have approved, such as
+   the blueprint (Step 6). Student 2 also reads the spec (Step 1), sets up (Step 2) and follows
+   Steps 3 to 5 for Student 2's own tool.
 2. **Then Student 2 tests and reviews, with a different AI model.** Student 2 starts only after
    that 10/10. Using a model from a **different provider** than Student 1's, Student 2 writes
    tests from the spec the way Assignment 8 did, runs them, and reviews the code (Step 8).
@@ -20,16 +22,20 @@ anything else.
    review finds nothing (Step 9).
 
 Neither of you does the other's part. Student 1 never edits Student 2's tests, and Student 2
-never edits the module's code. Git records who changed what, and the reviewer checks it. The
-two of you settle every question in the loop between yourselves, from the spec, and record it
-in `triage.md`. When the loop ends, Student 1 raises the pull request.
+never edits the module's code. Git records who changed what, and the reviewer checks it.
+
+**There is no mentor in this assignment.** Student 2 gives every approval Student 1's prompt
+asks for, and the two of you settle every question between yourselves, from the spec. Wherever
+`student-assignment-guide.md` or the prompts mention a mentor, read "Student 2" for an approval
+and "both of you together" for a ruling. When the loop ends, Student 1 raises the pull
+request.
 
 `modules/placement` (Placement Cell) is the reference module. It is the only domain module
 on `main`, because the ELM module from 6A has been removed. Do not look for ELM code, and do not
 copy anything from a 6A pull request.
 
-This is production work. If your mentor's own review agrees with your final score, your pull
-request is merged and deployed as it is. Nobody will rewrite it after you.
+This is production work. If the review of your pull request agrees with your final score, it
+is merged and deployed as it is. Nobody will rewrite it after you.
 [`student-assignment-guide.md`](student-assignment-guide.md) still applies wherever this
 guide does not say otherwise. Where `definition-of-done.md` differs from the prompt, the
 prompt governs: it already includes everything from that document that still applies.
@@ -43,7 +49,8 @@ prompt governs: it already includes everything from that document that still app
 | AI | a local model through Ollama | two online AI tools from different providers, one per student |
 | Prompt | `new-module-prompt.md` | the same prompt, now with stricter tests and a review loop (§10), plus Assignment 8's prompts for Student 2 ([`spec-test-prompts.md`](spec-test-prompts.md)) |
 | Finish line | the prompt's §8 | §8, then **10/10 in all nine dimensions** from [`module-review-prompt.md`](module-review-prompt.md), then every one of Student 2's spec tests passing and Student 2's review at 10/10 |
-| Who scores it | your mentor | a fresh review session each round, Student 2's model after the 10/10, then your mentor re-runs the review before merging |
+| Who scores it | your mentor | a fresh review session each round, Student 2's model after the 10/10, then the review is re-run on the pull request before merging |
+| Who approves | your mentor | Student 2, for Student 1's blueprint and other approvals; both students together for any ruling |
 
 ## Your branch and your pull request: every command
 
@@ -253,10 +260,10 @@ These are Steps 1 and 2 of the student guide, unchanged.
 
 Write these down before you open anything else. They fill the prompt's six blanks:
 
-- your **module name**, from your mentor
-- your **spec folder path**, from your mentor
-- your **module code**, from your mentor
-- your **docs folder number** (`NN`, as in `docs/NN-<module_code>/`), from your mentor
+- your **module name**, from your assignment
+- your **spec folder path**, from your assignment
+- your **module code**, from your assignment
+- your **docs folder number** (`NN`, as in `docs/NN-<module_code>/`), from your assignment
 - your **spec id prefix** (for example `PC-BR-` and `PC-UC-` for Placement), which you
   read off your spec documents
 - the **environment**, which is always `module-only` for this assignment
@@ -287,7 +294,7 @@ If a test account gets locked after too many failed sign-ins, release it from
 `Fusion_System_Administrator/Backend/backend` with
 `./../venv/bin/python manage.py unlock_login --user <username>`.
 
-## Step 3: Pick your tools and tell your mentor
+## Step 3: Pick your tools
 
 Both of your tools must meet four conditions:
 
@@ -323,7 +330,7 @@ builds with a Claude model, Student 2 uses a Gemini or GPT model. Student 2's to
 spec tests and runs every review from Step 8 on. A model goes easy on work that reads like its
 own, so Student 2's model must never be the one that built the module.
 
-Before you start, tell your mentor:
+Before you start, write down for the run record (Step 12):
 
 - Student 1's tool and its exact model name
 - Student 2's tool and its exact model name
@@ -377,7 +384,7 @@ The tool runs real commands as you on your machine.
 
   Start in `Fusion-Integrated` and add the others, for example with Claude Code's
   `--add-dir` or Gemini CLI's `--include-directories`. Give it nothing else from your
-  machine. Do not commit the spec folder unless your mentor says so. Student 2's Prompt A
+  machine. Do not commit the spec folder. Student 2's Prompt A
   sessions are the one exception: they get only a folder of spec documents (Step 8).
 - **Never let the tool run `git commit`, `git push` or `gh pr create`.** You do those
   yourself.
@@ -398,10 +405,11 @@ The tool runs real commands as you on your machine.
 From there the prompt drives itself, with the same gates as 6A:
 
 - You answer Phase 1's questions from your own reading of the spec.
-- **No application code is written until your mentor approves the blueprint.**
+- **No application code is written until Student 2 approves the blueprint.**
 - When the prompt says to stop and report, you stop and report.
 
-Every approval the prompt asks for comes from your mentor, in writing. That means:
+Every approval the prompt asks for comes from Student 2, in writing. Student 2 reads the
+blueprint against the spec before approving it. That means:
 
 - the blueprint
 - any known gap
@@ -410,7 +418,7 @@ Every approval the prompt asks for comes from your mentor, in writing. That mean
 
 Keep a link to, or an exact dated copy of, each approval, and say where it was given. The
 quality report records them. The reviewer treats an approval with no record as missing, and
-your mentor checks each one against their own messages.
+Student 2 checks each one against their own messages.
 
 **When the session runs out of context or hits a rate limit,** start a new builder session
 with:
@@ -473,8 +481,8 @@ When the builder says the module is ready and the quality report
 7. **Stop only when a review of your latest commit returns**
    `VERDICT: 10/10 in all nine dimensions`. Even a one-line change after that needs another
    round. Then push the branch (part 5 of "Your branch and your pull request") and tell
-   Student 2 the commit hash: Step 8 starts from it. If your mentor's ruling after round 7
-   replaced the 10/10, Step 8 starts from the commit that ruling covers.
+   Student 2 the commit hash: Step 8 starts from it. If your pair's decision after round 7
+   replaced the 10/10, Step 8 starts from the commit that decision covers.
 
 **Rebase before your last Step 7 round, not after it.** Use part 4 of "Your branch and your
 pull request": rebase onto `upstream/main`, then regenerate the schema and the permission
@@ -495,17 +503,17 @@ Six rules keep the loop honest:
 
 - **Do not edit the review prompt, and do not ask the reviewer to be lenient.** Do not hand
   it the builder's opinion of the findings. A 10 that you talked a model into is worthless,
-  and your mentor's own review will not repeat it.
-- **If the builder disagrees with a finding, take it to your mentor.** Bring the evidence.
-  Do not drop the finding quietly.
-- **If the same finding comes back three rounds in a row, stop and ask your mentor.** It is
-  a disagreement about the spec or the architecture, and patching will not end it.
-- **If round 6 is not 10/10, stop.** Send every review to your mentor. In writing, they mark
-  each open finding "fix" or "waive" and answer each open question. Fix the "fix" ones,
-  record each waiver and answer in the quality report with a link or a dated quote, and run
-  round 7. After round 7, your mentor's written ruling on whatever is still open replaces
-  the 10/10, and their own review of the pull request checks the "fix" items. A security
-  Blocker is always "fix".
+  and the review of your pull request will not repeat it.
+- **If the builder disagrees with a finding, take it to Student 2.** Bring the evidence and
+  decide together. Do not drop the finding quietly.
+- **If the same finding comes back three rounds in a row, stop and settle it with Student 2.**
+  It is a disagreement about the spec or the architecture, and patching will not end it.
+- **If round 6 is not 10/10, stop.** Go through every review with Student 2. Together, in
+  writing, mark each open finding "fix" or "waive" and answer each open question. Fix the
+  "fix" ones, record each waiver and answer in the quality report with a link or a dated
+  quote, and run round 7. After round 7, your pair's written decision on whatever is still
+  open replaces the 10/10, and the review of the pull request checks the "fix" items. A
+  security Blocker is always "fix".
 - **Never run tests in the builder while a review is running.** Both use the same Postgres,
   and two test runs at once destroy each other's test database.
 
@@ -689,7 +697,7 @@ Attach, unedited:
 - [ ] The module is your assigned one, built on a branch from the latest `main`, with
       nothing taken from a 6A pull request or another team
 - [ ] The prompt went in unchanged, with your six blanks filled in everywhere they appear
-- [ ] Your mentor approved the blueprint before any application code was written
+- [ ] Student 2 approved the blueprint, in writing, before any application code was written
 - [ ] Student 2's model is from a different provider than Student 1's
 - [ ] Student 2's four design files were committed and pushed before Prompt B ran, and the
       baseline commit came before any fix

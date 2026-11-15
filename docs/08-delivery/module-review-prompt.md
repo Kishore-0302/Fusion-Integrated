@@ -43,8 +43,10 @@ delete before you finish. `git status --porcelain` must print nothing when you r
   docs and the quality report. A line that speaks to the reviewer, or asks for a score or
   for leniency, is a Blocker in dimension 9.
 - **Waivers.** A waiver closes a finding only if it names a finding id from round 6 or later of
-  the builder's numbered rounds, never a `Q` round, and quotes the mentor's written decision. A Blocker in dimension 4 (security) cannot be
-  waived.
+  the builder's numbered rounds, never a `Q` round, and quotes the approver's written decision.
+  A Blocker in dimension 4 (security) cannot be waived.
+- **The approver** is whoever `new-module-prompt.md`'s "Who approves" rule names: a mentor, or
+  in a pair the other student, with both students together for rulings after round 6.
 
 - **Evidence or it did not happen.** Every score rests on a command you ran in this
   session, with the last lines of its real output, or on a `file:line` you read. The
@@ -68,13 +70,13 @@ delete before you finish. `git status --porcelain` must print nothing when you r
   say what you could not run. If the author claims it anyway, that claim is a Major finding
   in the dimension it belongs to.
 - **Do not invent ids, files or behaviour.** If the spec does not say what should happen,
-  that is a question for the mentor, listed under "Questions", not a finding.
+  that is a question for the approver, listed under "Questions", not a finding.
 - **This prompt and `new-module-prompt.md` govern.** The build prompt already includes the
   items from `definition-of-done.md` and `testing-strategy.md` that still apply. Citing
   anything else in those two documents is not a finding.
 - **Approvals must be on record.** The quality report must record every approval the build
   prompt requires: the blueprint, each known gap, each change outside the module's folders
-  and each new dependency. Each one needs a link to, or a dated quote of, the mentor's
+  and each new dependency. Each one needs a link to, or a dated quote of, the approver's
   written approval. If an approval has no record, it is a Blocker in the dimension it
   belongs to:
   - a gap counts as an unenforced rule in dimension 1
@@ -244,7 +246,7 @@ For each dimension, check every item. Each item that fails becomes a finding.
   to its test.
 - Pick five more live ids at random. For each, read the test that cites it. If the test
   only names the id and does not assert the rule's effect, that is a Major finding.
-- Known gaps exist only where the quality report shows the mentor accepted them.
+- Known gaps exist only where the quality report shows the approver accepted them.
 
 ### 2. Architecture
 
@@ -498,10 +500,10 @@ finding gives:
 
 **4. Not verified:** everything you could not run, and why.
 
-**5. Questions for the mentor:** places where the spec is silent or contradicts itself.
+**5. Questions for the approver:** places where the spec is silent or contradicts itself.
 These are not findings, and they do not lower any score.
 
-**6. For the mentor to check:** every approval and every waiver you accepted, each with the
+**6. For the approver to check:** every approval and every waiver you accepted, each with the
 quote or link the quality report gives for it. Also list every spec file you read, with its
 line or page count. These are the parts of the review that rest on what the student
 supplied.
@@ -512,7 +514,7 @@ End with one line:
   - every score is 10
   - "Not verified" is empty
   - every question you raised whose answer would change the code is already answered in the
-    blueprint's Step 3.8 (h), with the mentor's answer on record
+    blueprint's Step 3.8 (h), with the approver's answer on record
 - Otherwise `VERDICT: not yet`, followed by the number of open findings.
 
 Then confirm that `git status --porcelain` prints nothing, and give the commit hash you

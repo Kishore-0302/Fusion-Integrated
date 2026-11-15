@@ -85,10 +85,12 @@ items from `definition-of-done.md` that still apply are already folded into the 
 anything there this prompt does not state does not apply. Do not add a missing tool to satisfy
 it: that is a new dependency, and needs approval like any other (Step 7.7).
 
-**Who approves, when this is an assignment.** If a mentor assigned you this module, every
-approval this prompt asks for — the blueprint (Step 3.8), each known gap, each change outside
-your module's own folders, each new dependency — is the mentor's, given in writing. The
-person typing to you can relay it, not grant it. Record each approval in the quality report
+**Who approves, when this is an assignment.** If this module is an assignment, every approval
+this prompt asks for — the blueprint (Step 3.8), each known gap, each change outside your
+module's own folders, each new dependency — comes from the approver the assignment names,
+given in writing: a mentor, or, when students work in pairs, the other student of the pair.
+Rulings on findings still open after round 6 are the approver's too; in a pair, both students
+make them together. The person typing to you can relay an approval, not grant it. Record each approval in the quality report
 (Step 7.9) as a link to, or a dated quote of, that written approval. An approval with no
 record does not count.
 
@@ -1050,7 +1052,7 @@ Not "tests pass". All of it:
 15. The quality report (Step 7.9) exists and every number in it came from a run made after
     the last code change.
 16. §10's review scores 10 in all nine dimensions, from a review made after the last change —
-    or, after round 7, the mentor's written ruling on whatever is still open.
+    or, after round 7, the approver's written ruling on whatever is still open.
 
 ---
 
@@ -1110,7 +1112,7 @@ The module is finished when a review made **after the last code change** scores 
 nine dimensions. Any change after that review — even a one-line fix — needs a new review. If
 the same finding comes back three rounds in a row, stop and tell me: that is a disagreement
 about the spec or the architecture, and it is mine to settle, not yours to keep patching.
-After round 7, the mentor's written ruling on whatever is still open replaces the 10/10.
+After round 7, the approver's written ruling on whatever is still open replaces the 10/10.
 
 ### Step 10.5 — After the 10/10: a second student's spec tests
 
