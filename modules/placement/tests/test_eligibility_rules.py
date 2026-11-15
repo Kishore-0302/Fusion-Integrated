@@ -8,7 +8,8 @@ from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from modules.placement.domain.eligibility import evaluate, failure_reasons
+from modules.placement.domain import eligibility as elig
+from modules.placement.domain.eligibility import evaluate, failure_reasons, validate
 
 
 def facts(**kw):
@@ -123,3 +124,89 @@ class ExplanationTests(SimpleTestCase):
         out = evaluate({"gte": ["nonexistent_field", 1]}, facts())
         message = failure_reasons(out)[0]["message"]
         self.assertIn("placement office", message.lower())
+
+
+class NumericEqualityTests(SimpleTestCase):
+
+    def test_equal_cpi_matches_by_value(self):
+        self.assertTrue(evaluate({"eq": ["cpi", 8.1]}, facts(cpi=Decimal("8.10"))).is_eligible)
+
+    def test_unequal_cpi_does_not_match(self):
+        self.assertFalse(evaluate({"eq": ["cpi", 8.1]}, facts(cpi=Decimal("8.11"))).is_eligible)
+
+    def test_membership_compares_numbers_by_value(self):
+        self.assertTrue(evaluate({"in": ["cpi", [8.1, 9]]}, facts(cpi=Decimal("8.10"))).is_eligible)
+        self.assertFalse(evaluate({"not_in": ["cpi", [8.1]]}, facts(cpi=Decimal("8.10"))).is_eligible)
+
+    def test_a_non_numeric_literal_denies_rather_than_passing_ne(self):
+        out = evaluate({"ne": ["cpi", "high"]}, facts())
+        self.assertFalse(out.is_eligible)
+        self.assertEqual(out.outcomes[0].reason, "type_mismatch")
+
+
+class AuthoringValidationTests(SimpleTestCase):
+    """PC-BR-004: a malformed rule is refused when it is written, not when a student applies."""
+
+    SOUND = (
+        {},
+        {"gte": ["cpi", 7.0]},
+        {"in": ["discipline", ["CSE", "ECE"]]},
+        {"lte": ["active_backlogs", 0]},
+        {"eq": ["is_placed", False]},
+        {"eq": ["discipline", "CSE"]},
+        {"not": {"in": ["programme", ["M.Tech"]]}},
+        {"all": [{"gte": ["cpi", 7]}, {"any": [{"eq": ["semester", 7]},
+                                                {"gte": ["batch_year", 2022]}]}]},
+    )
+
+    BROKEN = (
+        ({"approx": ["cpi", 7]}, "unknown_operator"),
+        ({"between": ["batch_year", [2021, 2023]]}, "unknown_operator"),
+        ({"gte": ["gpa", 7.0]}, "unknown_field"),
+        ({"gte": ["cpi", "seven"]}, "type_mismatch"),
+        ({"gte": ["cpi", True]}, "type_mismatch"),
+        ({"eq": ["is_placed", "false"]}, "type_mismatch"),
+        ({"eq": ["discipline", " "]}, "type_mismatch"),
+        ({"in": ["discipline", "CSE"]}, "type_mismatch"),
+        ({"in": ["discipline", []]}, "type_mismatch"),
+        ({"in": ["semester", [7, "eight"]]}, "type_mismatch"),
+        ({"gte": ["discipline", "CSE"]}, "operator_not_valid_for_field"),
+        ({"has_all": ["discipline", ["CSE"]]}, "operator_not_valid_for_field"),
+        ({"gte": ["cpi"]}, "malformed_rule"),
+        ({"gte": [7, "cpi"]}, "malformed_rule"),
+        ({"gte": ["cpi", 7], "lte": ["cpi", 9]}, "malformed_rule"),
+        ({"all": "not-a-list"}, "malformed_rule"),
+        ({"any": []}, "malformed_rule"),
+        ({"not": "cpi"}, "malformed_rule"),
+        (["gte", "cpi", 7], "malformed_rule"),
+    )
+
+    def test_sound_rules_have_no_problems(self):
+        for rule in self.SOUND:
+            with self.subTest(rule=rule):
+                self.assertEqual(validate(rule), [])
+
+    def test_each_broken_rule_names_its_reason(self):
+        for rule, reason in self.BROKEN:
+            with self.subTest(rule=rule):
+                self.assertEqual([p.reason for p in validate(rule)], [reason])
+
+    def test_a_problem_deep_in_the_tree_names_its_path(self):
+        rule = {"all": [{"gte": ["cpi", 7]}, {"any": [{"approx": ["cpi", 7]}]}]}
+        (problem,) = validate(rule)
+        self.assertEqual((problem.path, problem.field), ("rule.all[1].any[0]", "cpi"))
+
+    def test_every_problem_is_reported_not_only_the_first(self):
+        rule = {"all": [{"approx": ["cpi", 7]}, {"gte": ["gpa", 7]}]}
+        self.assertEqual([p.reason for p in validate(rule)], ["unknown_operator", "unknown_field"])
+
+    def test_nesting_past_the_limit_is_too_complex(self):
+        rule = {"gte": ["cpi", 7.0]}
+        for _ in range(elig.MAX_DEPTH + 1):
+            rule = {"all": [rule]}
+        self.assertEqual([p.reason for p in validate(rule)], ["rule_too_complex"])
+
+    def test_every_field_has_exactly_one_type(self):
+        typed = [elig.NUMERIC_FIELDS, elig.TEXT_FIELDS, elig.FLAG_FIELDS, elig.LIST_FIELDS]
+        self.assertEqual(set().union(*typed), elig.FIELDS)
+        self.assertEqual(sum(len(s) for s in typed), len(elig.FIELDS))
