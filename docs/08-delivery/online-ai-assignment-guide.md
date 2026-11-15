@@ -211,7 +211,7 @@ If a test account gets locked after too many failed sign-ins, release it from
 
 ## Step 3: Pick your tools and tell your mentor
 
-Both of your tools must meet three conditions:
+Both of your tools must meet four conditions:
 
 - **It reads files and runs shell commands itself.** Chat-only web apps do not qualify.
 - **It has a context window of at least 200k tokens.** The prompt alone is about 1,000
@@ -230,7 +230,7 @@ Tools that meet these:
 - OpenAI Codex CLI
 - GitHub Copilot in agent mode
 - Cursor
-- OpenCode, pointed at a hosted model that meets the same three conditions
+- OpenCode, pointed at a hosted model that meets the context-window and token-limit conditions
 
 Check GitHub Education's student benefits for free access to some of these.
 
