@@ -1,4 +1,7 @@
-"""Offers and placement records (PC-WF-007, PC-BR-013/014/015).
+"""Offers and placement records.
+
+Spec refs: BW-PC-07, BW-PC-08, CW-PC-03, CW-PC-04,
+           PC-BR-013/014/015, PC-UC-005, PC-UC-022.
 
 Two tabs accepting two offers at once is stopped three times over: a
 `select_for_update` mutex on the registration row, the policy re-evaluated
@@ -99,7 +102,7 @@ _student_state = student_state
 @transaction.atomic
 def issue(*, application_id: int, actor, ctc_lpa=None, tier_rank=None,
           respond_by=None, letter_id: int | None = None, scope=None) -> Offer:
-    """Extend an offer (PC-UC-016). Always carries a response deadline.
+    """Extend an offer (PC-UC-022). Always carries a response deadline.
 
     Both gates: `require` is the authority, `scope` is the reach.
     """

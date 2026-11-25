@@ -1,4 +1,4 @@
-"""Announcements (PC-UC-013, PC-UC-020, PC-WF-008, PC-BR-017/018)."""
+"""Announcements (PC-UC-013, PC-UC-020, PC-UC-007, PC-AFR-040..043, PC-BR-017)."""
 from __future__ import annotations
 
 from django.db import transaction
@@ -17,8 +17,8 @@ VALID_AUDIENCES = {c for c, _ in Announcement.AUDIENCE}
 @transaction.atomic
 def publish(*, actor, title: str, body: str, topic: str = "general",
             audience: str = "students", placement_year: str = "") -> Announcement:
-    """PC-WF-008 step 2: validate publication authority and scope, then
-    publish and notify."""
+    """PC-UC-013 / PC-UC-020: validate publication authority and scope, then
+    publish and notify via PC-UC-007."""
     if not actor.has_permission(P_PUBLISH):
         from core.api.exceptions import PermissionDeniedError
         raise PermissionDeniedError(f"This action needs {P_PUBLISH}.",
@@ -52,7 +52,7 @@ def publish(*, actor, title: str, body: str, topic: str = "general",
 
 @transaction.atomic
 def withdraw(*, announcement_id: int, actor, reason: str) -> Announcement:
-    """PC-BR-018: history is maintained, so this flags rather than deletes."""
+    """PC-AFR-043: history is maintained, so this flags rather than deletes."""
     if not (reason or "").strip():
         raise ConflictError("A reason is required to withdraw an announcement.",
                             code="reason_required")

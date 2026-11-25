@@ -1,0 +1,380 @@
+[
+{
+"test_id": "PCMS-BR001-01",
+"source_id": "PC-BR-001 configured completeness satisfied",
+"purpose": "Verify application submission is allowed when required profile completeness is satisfied.",
+"preconditions": "A job posting requires configured profile completeness. The Student profile satisfies that condition and the Student meets the posting's recorded eligibility criteria.",
+"action_or_input": "Submit an application for the posting.",
+"expected_result": "PCMS permits the application to proceed.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-BR001-02",
+"source_id": "PC-BR-001 configured completeness unsatisfied",
+"purpose": "Verify application submission is blocked when required profile completeness is not satisfied.",
+"preconditions": "A job posting requires configured profile completeness. The Student profile does not satisfy that condition.",
+"action_or_input": "Submit an application for the posting.",
+"expected_result": "PCMS does not allow the application to be submitted.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-BR002-01",
+"source_id": "PC-BR-002 eligible Student",
+"purpose": "Verify a Student meeting recorded eligibility criteria can apply.",
+"preconditions": "A posting has recorded eligibility criteria. The Student satisfies those criteria.",
+"action_or_input": "Submit an application for the posting.",
+"expected_result": "PCMS permits the application.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-BR002-02",
+"source_id": "PC-BR-002 ineligible Student",
+"purpose": "Verify a Student who does not meet recorded eligibility criteria cannot apply.",
+"preconditions": "A posting has recorded eligibility criteria. The Student fails at least one such criterion.",
+"action_or_input": "Submit an application for the posting.",
+"expected_result": "PCMS prevents the application from being submitted.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-BR003-01",
+"source_id": "PC-BR-003 required posting content present",
+"purpose": "Verify a posting with all required content can be saved or published.",
+"preconditions": "The posting includes a role description, eligibility criteria, and an application deadline.",
+"action_or_input": "Save or publish the posting.",
+"expected_result": "PCMS accepts the posting.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-BR003-02",
+"source_id": "PC-BR-003 required posting content missing",
+"purpose": "Verify a posting missing required content is not accepted.",
+"preconditions": "The posting lacks at least one of: role description, eligibility criteria, or application deadline.",
+"action_or_input": "Save or publish the posting.",
+"expected_result": "PCMS does not accept the posting as a saved, published, or submitted opportunity.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-BR004-01",
+"source_id": "PC-BR-004 recorded eligibility criteria",
+"purpose": "Verify eligibility evaluation uses criteria represented for the posting.",
+"preconditions": "A posting records selected eligibility criteria, such as CGPA, branch, year, or skills. Student data is available for those criteria.",
+"action_or_input": "Evaluate the Student's eligibility for the posting, including a criterion not represented for that posting.",
+"expected_result": "PCMS evaluates the recorded criteria and does not apply an unrecorded external criterion.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-BR005-01",
+"source_id": "PC-BR-005 TPO posting-management authority",
+"purpose": "Verify a TPO can manage postings within the supported posting scope.",
+"preconditions": "The actor has the TPO role.",
+"action_or_input": "Create, update, or publish a job posting on behalf of or in coordination with a Company/Recruiter.",
+"expected_result": "PCMS permits the supported posting-management action.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR006-01",
+"source_id": "PC-BR-006 authorized Company/Recruiter opportunity authority",
+"purpose": "Verify an authorized Company/Recruiter can manage opportunities within its permitted access scope.",
+"preconditions": "The Company/Recruiter has an authorization state and access scope that permit opportunity management.",
+"action_or_input": "Create or submit a job or internship opportunity and define its eligibility criteria.",
+"expected_result": "PCMS permits the requested actions within the authorized scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR006-02",
+"source_id": "PC-BR-006 Company/Recruiter outside authorized scope",
+"purpose": "Verify opportunity actions outside a Company/Recruiter's permitted access scope are unavailable.",
+"preconditions": "The Company/Recruiter lacks authorization for the requested opportunity action or scope.",
+"action_or_input": "Attempt to publish or submit an opportunity, or define its criteria, outside the permitted scope.",
+"expected_result": "PCMS does not permit the action outside the authorized scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR007-01",
+"source_id": "PC-BR-007 represented authorization permits Company functions",
+"purpose": "Verify Company functions are available when the represented authorization state permits them.",
+"preconditions": "The Company's represented authorization state permits the requested Company function.",
+"action_or_input": "Use a Company function, such as opportunity management.",
+"expected_result": "PCMS permits the function according to the represented authorization state.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR007-02",
+"source_id": "PC-BR-007 represented authorization does not permit Company functions",
+"purpose": "Verify Company functions are unavailable when the represented authorization state does not permit them.",
+"preconditions": "The Company's represented authorization state does not permit the requested Company function.",
+"action_or_input": "Attempt to use the Company function.",
+"expected_result": "PCMS does not make the function available.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR009-01",
+"source_id": "PC-BR-009 own authorized opportunity",
+"purpose": "Verify a Company/Recruiter can access and manage applications for its own authorized opportunities.",
+"preconditions": "The Company/Recruiter is authorized for the opportunity and an application exists for it.",
+"action_or_input": "View or manage the application.",
+"expected_result": "PCMS permits the application access or action within that opportunity scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR009-02",
+"source_id": "PC-BR-009 another Company's opportunity",
+"purpose": "Verify a Company/Recruiter cannot access or manage applications outside its authorized opportunity scope.",
+"preconditions": "An application exists for an opportunity outside the Company/Recruiter's authorized scope.",
+"action_or_input": "Attempt to view or change the application.",
+"expected_result": "PCMS limits access and actions to the Company's own authorized opportunities.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR010-01",
+"source_id": "PC-BR-010 TPO application-management authority",
+"purpose": "Verify a TPO can perform supported application-management actions.",
+"preconditions": "The actor has the TPO role and an application is available for management.",
+"action_or_input": "View, review, filter, or administratively manage the application.",
+"expected_result": "PCMS permits the supported action within the TPO's application-management scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR011-01",
+"source_id": "PC-BR-011 complete interview schedule",
+"purpose": "Verify a complete interview schedule can establish Interview Scheduled status.",
+"preconditions": "An eligible and shortlisted Student has an application. The schedule includes an interview date, time slot, and mode of online or offline.",
+"action_or_input": "Record the interview schedule.",
+"expected_result": "PCMS records the schedule and may establish Interview Scheduled status.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-BR011-02",
+"source_id": "PC-BR-011 incomplete interview schedule",
+"purpose": "Verify required schedule details must be present before Interview Scheduled is established.",
+"preconditions": "An eligible and shortlisted Student has an application. The proposed schedule omits at least one of interview date, time slot, or online/offline mode.",
+"action_or_input": "Attempt to record the schedule and establish Interview Scheduled status.",
+"expected_result": "PCMS does not establish Interview Scheduled without the required schedule fields.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-BR012-01",
+"source_id": "PC-BR-012 eligible and shortlisted Student",
+"purpose": "Verify recording an interview schedule triggers a notification for eligible, shortlisted Students.",
+"preconditions": "An interview schedule is recorded for an eligible and shortlisted Student.",
+"action_or_input": "Record the interview schedule.",
+"expected_result": "PCMS triggers an interview notification event for the Student.",
+"test_type": "notification"
+},
+{
+"test_id": "PCMS-BR013-01",
+"source_id": "PC-BR-013 response within represented deadline",
+"purpose": "Verify a Student can respond to an offer when the represented deadline condition allows it.",
+"preconditions": "An offer is extended and its response deadline is represented in PCMS. The current response is within that deadline condition.",
+"action_or_input": "Accept or reject the offer.",
+"expected_result": "PCMS permits the offer response.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-BR013-02",
+"source_id": "PC-BR-013 response outside represented deadline",
+"purpose": "Verify a Student cannot respond when the represented deadline condition does not allow it.",
+"preconditions": "An offer is extended and its response deadline is represented in PCMS. The current response is outside that deadline condition.",
+"action_or_input": "Attempt to accept or reject the offer.",
+"expected_result": "PCMS does not permit the response.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-BR014-01",
+"source_id": "PC-BR-014 offer acceptance",
+"purpose": "Verify accepting an offer updates the offer state and placement record.",
+"preconditions": "A Student has an Offer Extended offer and the represented deadline condition permits a response.",
+"action_or_input": "Accept the offer.",
+"expected_result": "PCMS records the offer as accepted and updates the placement record accordingly.",
+"test_type": "lifecycle"
+},
+{
+"test_id": "PCMS-BR015-01",
+"source_id": "PC-BR-015 represented multiple-offer policy",
+"purpose": "Verify PCMS applies only multiple-offer policy logic explicitly represented in the system.",
+"preconditions": "A Student has multiple offers and a relevant institutional policy rule is explicitly represented in PCMS.",
+"action_or_input": "Exercise the represented multiple-offer condition.",
+"expected_result": "PCMS applies only the represented policy logic to restrict, record, notify, or report the situation as specified by that logic.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-BR015-02",
+"source_id": "PC-BR-015 unrepresented multiple-offer policy",
+"purpose": "Verify PCMS does not invent multiple-offer restrictions when policy logic is not represented.",
+"preconditions": "A Student has multiple offers and no relevant institutional policy logic is represented in PCMS.",
+"action_or_input": "Exercise the multiple-offer condition.",
+"expected_result": "PCMS does not apply an unsupported restriction or policy interpretation.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-BR016-01",
+"source_id": "PC-BR-016 Student anonymized statistics view",
+"purpose": "Verify Students see only available anonymized placement statistics and historical data.",
+"preconditions": "Placement statistics and historical data are available, including sensitive identifying information.",
+"action_or_input": "Request placement statistics or historical placement data as a Student.",
+"expected_result": "PCMS displays only anonymized statistics and historical data made available to Students; unrestricted sensitive placement data is not displayed.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR017-01",
+"source_id": "PC-BR-017 supported placement announcement content",
+"purpose": "Verify announcements within the specified placement-related scope can be accepted.",
+"preconditions": "The actor is authorized to create announcements.",
+"action_or_input": "Create an announcement about a placement drive, company visit, training session, workshop, or another actor-specific official topic listed in the Problem Statement.",
+"expected_result": "PCMS accepts the placement-related announcement within the supported scope.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-BR017-02",
+"source_id": "PC-BR-017 unrelated announcement content",
+"purpose": "Verify announcements outside the supported placement-related scope are not accepted.",
+"preconditions": "The actor is authorized to create announcements.",
+"action_or_input": "Create an announcement unrelated to the supported placement topics.",
+"expected_result": "PCMS does not accept the unrelated announcement as a supported placement announcement.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-BR019-01",
+"source_id": "PC-BR-019 Alumni permitted read-only access",
+"purpose": "Verify Alumni can view placement data permitted for mentorship or networking.",
+"preconditions": "An Alumni actor requests placement data available for mentorship or networking.",
+"action_or_input": "View the permitted placement data.",
+"expected_result": "PCMS permits the read-only view within the Alumni's restricted access scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR019-02",
+"source_id": "PC-BR-019 Alumni write restriction",
+"purpose": "Verify Alumni cannot modify placement data without a later explicitly supported action.",
+"preconditions": "An Alumni actor has read access to placement data and no later specification grants a modification action.",
+"action_or_input": "Attempt to modify the placement data.",
+"expected_result": "PCMS denies the modification.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR020-01",
+"source_id": "PC-BR-020 Alumni active placement workflow prohibition",
+"purpose": "Verify Alumni cannot participate in active placement workflows.",
+"preconditions": "The actor has the Alumni role.",
+"action_or_input": "Attempt each applicable active action: apply, shortlist, schedule an interview, issue an offer, and accept an offer.",
+"expected_result": "PCMS blocks each attempted active placement action.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR021-01",
+"source_id": "PC-BR-021 supported notification event email handoff",
+"purpose": "Verify each supported notification event produces a system-generated email handoff without assuming unspecified recipients.",
+"preconditions": "A supported notification event occurs: new job posting, application submission, shortlisting update, rejection update, interview schedule, job offer, or announcement. Any specified or configured recipient set is available.",
+"action_or_input": "Trigger each of the seven supported notification events.",
+"expected_result": "For each event, PCMS generates and hands off the supported email notification using only specified or configured recipient sets. The test checks PCMS handoff, not central email infrastructure delivery.",
+"test_type": "notification"
+},
+{
+"test_id": "PCMS-BR022-01",
+"source_id": "PC-BR-022 role-authorized access and action",
+"purpose": "Verify an actor can perform functions and access data authorized for the actor's PCMS role and scope.",
+"preconditions": "The actor has a PCMS role and scope authorizing the requested function or data item.",
+"action_or_input": "Request the authorized function or data item.",
+"expected_result": "PCMS permits the role-authorized access or action.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR022-02",
+"source_id": "PC-BR-022 access and action outside role scope",
+"purpose": "Verify an actor cannot access data or perform actions outside the actor's PCMS role and scope.",
+"preconditions": "The actor's PCMS role or scope does not authorize the requested function or data item.",
+"action_or_input": "Request the unauthorized function or data item.",
+"expected_result": "PCMS denies the access or action.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR023-01",
+"source_id": "PC-BR-023 authorized sensitive-data view",
+"purpose": "Verify an authorized stakeholder can view sensitive placement data within their access scope.",
+"preconditions": "The actor is authorized to view the requested sensitive placement data.",
+"action_or_input": "Request the sensitive placement data.",
+"expected_result": "PCMS permits the view within the authorized scope, subject to the separate Student statistics restriction where applicable.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR023-02",
+"source_id": "PC-BR-023 unauthorized sensitive-data view",
+"purpose": "Verify an unauthorized actor cannot view sensitive placement data.",
+"preconditions": "The actor is not authorized to view the requested sensitive placement data.",
+"action_or_input": "Request the sensitive placement data.",
+"expected_result": "PCMS denies the view.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR024-01",
+"source_id": "PC-BR-024 authorized sensitive-data modification",
+"purpose": "Verify an authorized stakeholder can modify sensitive placement data within their access scope.",
+"preconditions": "The actor is authorized to modify the requested sensitive placement data.",
+"action_or_input": "Modify the sensitive placement data.",
+"expected_result": "PCMS permits the modification within the authorized scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR024-02",
+"source_id": "PC-BR-024 unauthorized sensitive-data modification",
+"purpose": "Verify an unauthorized actor cannot modify sensitive placement data.",
+"preconditions": "The actor is not authorized to modify the requested sensitive placement data.",
+"action_or_input": "Attempt to modify the sensitive placement data.",
+"expected_result": "PCMS denies the modification.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR025-01",
+"source_id": "PC-BR-025 referenced or imported academic data",
+"purpose": "Verify PCMS uses academic data represented for its supported placement functions while treating the data as externally owned.",
+"preconditions": "Academic data is referenced or imported for a PCMS profile, eligibility, reporting, or placement-record use.",
+"action_or_input": "Use the represented academic data in the supported PCMS function.",
+"expected_result": "PCMS uses only the represented data needed for that function and does not claim ownership of the academic master data.",
+"test_type": "scope"
+},
+{
+"test_id": "PCMS-BR025-02",
+"source_id": "PC-BR-025 academic master-data management boundary",
+"purpose": "Verify PCMS does not provide academic master-data management functions.",
+"preconditions": "An actor requests an academic master-data management operation.",
+"action_or_input": "Attempt to create or manage academic master data through PCMS.",
+"expected_result": "PCMS does not provide the academic master-data management operation.",
+"test_type": "scope"
+},
+{
+"test_id": "PCMS-BR026-01",
+"source_id": "PC-BR-026 PCMS role/access enforcement",
+"purpose": "Verify PCMS enforces module access using the available platform identity and role context.",
+"preconditions": "An actor with an available platform identity and role context requests a PCMS function or data item.",
+"action_or_input": "Request access to the function or data item.",
+"expected_result": "PCMS enforces the applicable PCMS role and access restrictions.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR026-02",
+"source_id": "PC-BR-026 platform authentication and RBAC administration boundary",
+"purpose": "Verify platform-wide identity and RBAC administration are outside PCMS scope.",
+"preconditions": "An actor requests platform-wide authentication, identity-administration, or RBAC-infrastructure management through PCMS.",
+"action_or_input": "Attempt the platform-wide administration operation in PCMS.",
+"expected_result": "PCMS does not provide platform-wide authentication, identity administration, or RBAC infrastructure management.",
+"test_type": "scope"
+},
+{
+"test_id": "PCMS-BR029-01",
+"source_id": "PC-BR-029 TPO Student and Alumni placement-record update",
+"purpose": "Verify a TPO can update Student and Alumni placement records within the supported record-maintenance function.",
+"preconditions": "The actor has the TPO role and a supported Student or Alumni placement record is available.",
+"action_or_input": "Update the placement record.",
+"expected_result": "PCMS permits the update within the TPO's record-maintenance scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-BR030-01",
+"source_id": "PC-BR-030 authorized recruitment decision/status update",
+"purpose": "Verify PCMS records and exposes authorized recruitment status information supplied through supported actions without making the external selection decision.",
+"preconditions": "An authorized Company/Recruiter supplies a supported shortlist, interview, offer, rejection-update, or placement-status update.",
+"action_or_input": "Submit the supported status update through PCMS.",
+"expected_result": "PCMS records and exposes the authorized update within scope; it does not claim to make the external recruiting-company decision.",
+"test_type": "scope"
+}
+]

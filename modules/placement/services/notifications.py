@@ -1,4 +1,4 @@
-"""Notification decisions and delivery (PC-BR-021).
+"""Notification decisions and delivery (PC-UC-007, PC-BR-021, PC-AFR-050..056).
 
 Every notification is written to the outbox in the same transaction as the
 event that caused it, so an offer and its email commit together and a broken

@@ -1,0 +1,641 @@
+[
+{
+"test_id": "PCMS-TC-001",
+"source_id": "PC-UC-001 Main Success Scenario",
+"purpose": "Create a placement profile with valid academic records, skills, achievements, certifications, and documents.",
+"preconditions": "Authenticated Student with access to their own placement profile.",
+"action_or_input": "Open the profile, enter valid data in the listed fields, and save.",
+"expected_result": "PCMS displays the fields, saves the valid profile, and makes it available for resume generation and later eligibility checks.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-002",
+"source_id": "PC-UC-001 Alternative A1",
+"purpose": "Save only the profile sections currently being maintained.",
+"preconditions": "Authenticated Student with access to their own placement profile; configured completeness rules permit the partial update.",
+"action_or_input": "Update one profile section and save without submitting other sections.",
+"expected_result": "The updated section is saved subject to configured completeness rules.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-003",
+"source_id": "PC-UC-001 Exception E1",
+"purpose": "Reject a profile save with missing or invalid required data.",
+"preconditions": "Authenticated Student with a previously valid profile.",
+"action_or_input": "Attempt to save an update with a required field missing or invalid.",
+"expected_result": "PCMS rejects the save, identifies data requiring correction, and leaves previously valid profile data unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-004",
+"source_id": "PC-UC-001 Exception E2",
+"purpose": "Block access to a profile outside the Student's permitted scope.",
+"preconditions": "Authenticated Student; another Student's profile is restricted.",
+"action_or_input": "Attempt to access or modify the other Student's profile.",
+"expected_result": "PCMS blocks the action.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-005",
+"source_id": "PC-UC-002 Main Success Scenario",
+"purpose": "Browse available job and internship opportunities and view recorded details.",
+"preconditions": "Authenticated Student with Student-role access; opportunities are available.",
+"action_or_input": "Open the opportunity list, select an opportunity, and view its details.",
+"expected_result": "PCMS lists opportunities available to the Student role and displays the selected opportunity's recorded role description, eligibility criteria, and application deadline where applicable; no placement data changes.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-006",
+"source_id": "PC-UC-002 Alternative A1",
+"purpose": "Display the empty result when no opportunities are available.",
+"preconditions": "Authenticated Student with Student-role access; no opportunities are currently available.",
+"action_or_input": "Open the placement-opportunity list.",
+"expected_result": "PCMS displays an empty/no-opportunity result without changing placement data.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-007",
+"source_id": "PC-UC-002 Exception E1",
+"purpose": "Block Student access to opportunity data outside the Student role scope.",
+"preconditions": "Authenticated Student; requested opportunity data is outside the Student role scope.",
+"action_or_input": "Attempt to access the out-of-scope opportunity data.",
+"expected_result": "PCMS blocks access and does not modify placement records.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-008",
+"source_id": "PC-UC-003 Main Success Scenario",
+"purpose": "Submit an application when profile completeness and posting eligibility checks pass.",
+"preconditions": "Authenticated Student; posting is available; any configured profile-completeness requirement and posting eligibility criteria are satisfied.",
+"action_or_input": "Initiate an application and confirm submission after the checks pass.",
+"expected_result": "PCMS records the application as Applied, appends it to application history, and triggers PC-UC-007 for the Application Submitted event.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-009",
+"source_id": "PC-UC-003 Exception E1",
+"purpose": "Block submission when a required profile-completeness condition is not satisfied.",
+"preconditions": "Authenticated Student; posting is available; profile completeness is required but not satisfied.",
+"action_or_input": "Initiate an application for the posting.",
+"expected_result": "PCMS blocks submission and creates no application.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-010",
+"source_id": "PC-UC-003 Exception E2",
+"purpose": "Block an ineligible Student from applying.",
+"preconditions": "Authenticated Student; posting is available; Student fails at least one recorded eligibility criterion.",
+"action_or_input": "Initiate an application for the posting.",
+"expected_result": "PCMS blocks submission and creates no application.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-011",
+"source_id": "PC-UC-003 Exception E3",
+"purpose": "Block an application when access is not permitted.",
+"preconditions": "Application access is not permitted for the requesting actor.",
+"action_or_input": "Attempt to submit the application.",
+"expected_result": "PCMS blocks the action and creates no application.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-012",
+"source_id": "PC-UC-004 Main Success Scenario",
+"purpose": "View the Student's application and placement status history.",
+"preconditions": "Authenticated Student with at least one accessible placement record.",
+"action_or_input": "Open placement-status tracking and select an application or placement item.",
+"expected_result": "PCMS lists accessible applications and recorded statuses, then displays available application history, interview status, offer status, and final placement status without changing data.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-013",
+"source_id": "PC-UC-004 Alternative A1",
+"purpose": "Display empty history when the Student has no placement records.",
+"preconditions": "Authenticated Student with no placement records.",
+"action_or_input": "Open placement-status tracking.",
+"expected_result": "PCMS displays empty history without changing data.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-014",
+"source_id": "PC-UC-004 Exception E1",
+"purpose": "Block access to another Student's restricted placement data.",
+"preconditions": "Authenticated Student; another Student's placement data is restricted.",
+"action_or_input": "Attempt to access the other Student's placement data.",
+"expected_result": "PCMS blocks access and does not modify placement data.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-015",
+"source_id": "PC-UC-005 Main Success Scenario; PC-UC-005 Alternative A1",
+"purpose": "Accept an offer within its response deadline.",
+"preconditions": "Authenticated Student; accessible offer is Offer Extended; response is permitted and within the applicable deadline.",
+"action_or_input": "Open the offer, review its details and deadline, and choose Accept.",
+"expected_result": "PCMS verifies deadline and authorization, records Offer Accepted, and updates the placement record as required.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-016",
+"source_id": "PC-UC-005 Alternative A2",
+"purpose": "Reject an offer within its response deadline.",
+"preconditions": "Authenticated Student; accessible offer is Offer Extended; response is permitted and within the applicable deadline.",
+"action_or_input": "Open the offer, review its details and deadline, and choose Reject.",
+"expected_result": "PCMS records Offer Rejected and makes no accepted-placement update.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-017",
+"source_id": "PC-UC-005 Exception E1",
+"purpose": "Block a response after the recorded deadline when no represented policy permits it.",
+"preconditions": "Authenticated Student; accessible offer is Offer Extended; response deadline has passed; no externally defined policy permitting a response is represented in PCMS.",
+"action_or_input": "Attempt to accept or reject the offer.",
+"expected_result": "PCMS blocks the new response and leaves existing offer and placement records unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-018",
+"source_id": "PC-UC-005 Exception E2",
+"purpose": "Apply only multiple-offer policy logic explicitly represented in PCMS.",
+"preconditions": "Authenticated Student; multiple-offer policy affects the response and only explicitly represented policy logic is available.",
+"action_or_input": "Respond to the offer under the represented multiple-offer policy conditions.",
+"expected_result": "PCMS applies only the policy logic explicitly represented in PCMS and does not introduce other policy behavior.",
+"test_type": "policy"
+},
+{
+"test_id": "PCMS-TC-019",
+"source_id": "PC-UC-005 Exception E3",
+"purpose": "Block an offer response when access is not permitted.",
+"preconditions": "The actor is not permitted to respond to the recorded offer.",
+"action_or_input": "Attempt to accept or reject the offer.",
+"expected_result": "PCMS blocks the response and leaves existing offer and placement records unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-020",
+"source_id": "PC-UC-006 Main Success Scenario",
+"purpose": "Create or manage and publish a valid job posting.",
+"preconditions": "Authenticated TPO with posting-management authority; associated company information is available as required.",
+"action_or_input": "Create a posting or open an existing/submitted opportunity, record its role description, eligibility criteria, and application deadline, and save/publish it for Student visibility as appropriate.",
+"expected_result": "PCMS validates content and authority, saves/updates the posting, makes a published posting available, and triggers PC-UC-007 when a new job posting becomes available.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-021",
+"source_id": "PC-UC-006 Alternative A1",
+"purpose": "Complete or manage a Company/Recruiter-submitted opportunity before making it available.",
+"preconditions": "Authenticated TPO with posting-management authority; a Company/Recruiter-submitted opportunity exists.",
+"action_or_input": "Complete or manage the submitted opportunity before making it available.",
+"expected_result": "PCMS saves the managed posting and makes it available only when published through the supported process.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-022",
+"source_id": "PC-UC-006 Exception E1",
+"purpose": "Prevent publication when required posting content is missing.",
+"preconditions": "Authenticated TPO with posting-management authority; an existing valid posting state is available.",
+"action_or_input": "Attempt to publish a posting with required content missing.",
+"expected_result": "PCMS does not publish the posting and does not replace the last valid posting state.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-023",
+"source_id": "PC-UC-006 Exception E2",
+"purpose": "Block a TPO action on a posting when the TPO lacks access.",
+"preconditions": "Authenticated TPO; requested posting action is outside the TPO's permitted access.",
+"action_or_input": "Attempt the requested posting action.",
+"expected_result": "PCMS blocks the action and preserves the last valid posting state.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-024",
+"source_id": "PC-UC-007 Main Success Scenario",
+"purpose": "Issue system-generated email notifications for supported events with resolved recipients.",
+"preconditions": "A supported event is validly recorded; required event data is available; recipient identity is established by accepted event semantics or an explicit supported rule/configuration.",
+"action_or_input": "Trigger New Job Posting, Application Submitted, Shortlisting Update, Rejection Update, Interview Scheduled, Job Offer Extended, or New Announcement event with a resolved recipient rule.",
+"expected_result": "PCMS determines recipients only from accepted semantics or an explicit supported rule, composes the email from the recorded event, hands it to external email delivery infrastructure, and leaves the underlying placement decision/state unchanged.",
+"test_type": "event"
+},
+{
+"test_id": "PCMS-TC-025",
+"source_id": "PC-UC-007 Alternative A1",
+"purpose": "Use the affected Student recipients for Interview Scheduled, Job Offer Extended, and New Announcement events.",
+"preconditions": "One of the specified events is validly recorded and required notification data is available.",
+"action_or_input": "Trigger each event with its affected Student recipient(s) established by the event semantics.",
+"expected_result": "PCMS handles the event using the affected Student recipient(s), without changing the underlying placement state.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-026",
+"source_id": "PC-UC-007 Alternative A2",
+"purpose": "Handle a placement-drive announcement as a supported announcement notification.",
+"preconditions": "A placement-drive announcement is validly recorded; its Student recipients are resolved.",
+"action_or_input": "Trigger the New Announcement event for the placement-drive announcement.",
+"expected_result": "PCMS handles it as a supported announcement notification and leaves the underlying placement state unchanged.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-027",
+"source_id": "PC-UC-007 Exception E1",
+"purpose": "Do not invent recipients for events with unresolved recipient policy.",
+"preconditions": "Application Submitted, Shortlisting Update, or Rejection Update event is validly recorded; accepted baseline does not identify its recipient policy.",
+"action_or_input": "Process the event without an explicit supported recipient rule/configuration.",
+"expected_result": "PCMS does not invent or send a notification to an unsupported recipient; triggering placement state remains unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-028",
+"source_id": "PC-UC-007 Exception E2",
+"purpose": "Avoid fabricating notification content when required event data is unavailable.",
+"preconditions": "A supported notification event is recorded but required notification event data is unavailable.",
+"action_or_input": "Process the event.",
+"expected_result": "PCMS does not fabricate unsupported notification content, send to unsupported recipients, or change the triggering placement state.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-029",
+"source_id": "PC-UC-008 Main Success Scenario",
+"purpose": "Review, filter, and make a permitted administrative application-management update.",
+"preconditions": "Authenticated TPO with access to relevant application records.",
+"action_or_input": "Open applications for a posting or placement activity, review and filter in-scope records, and update permitted administrative information.",
+"expected_result": "PCMS displays records within TPO scope, saves supported administrative changes, and preserves application history.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-030",
+"source_id": "PC-UC-008 Alternative A1",
+"purpose": "Filter or view applications without changing records.",
+"preconditions": "Authenticated TPO with access to relevant application records.",
+"action_or_input": "Filter and view applications without submitting a record update.",
+"expected_result": "PCMS presents the in-scope application view without changing application records or recruitment-decision status.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-031",
+"source_id": "PC-UC-008 Exception E1",
+"purpose": "Block application access or modification outside TPO scope.",
+"preconditions": "Authenticated TPO; requested application data or modification is outside TPO scope.",
+"action_or_input": "Attempt the out-of-scope access or modification.",
+"expected_result": "PCMS blocks the action.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-032",
+"source_id": "PC-UC-008 Exception E2",
+"purpose": "Prevent TPO administrative management from making an unsupported recruitment decision.",
+"preconditions": "Authenticated TPO; no separate explicit authority to make the external Company/Recruiter recruitment decision is represented.",
+"action_or_input": "Attempt to change a recruitment-decision status through TPO administrative management.",
+"expected_result": "PCMS does not treat the administrative action as authority to make the external recruitment decision.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-033",
+"source_id": "PC-UC-009 Main Success Scenario",
+"purpose": "Schedule an interview and track supported interview progress.",
+"preconditions": "Authenticated TPO; candidate application is in TPO scope and appropriate for interview scheduling.",
+"action_or_input": "Select a shortlisted application, coordinate details with the Company/Recruiter, record date, time slot, and online/offline mode, then view or update supported progress information.",
+"expected_result": "PCMS saves the schedule, sets or updates interview status, triggers PC-UC-007 for affected eligible/shortlisted Student(s), and supports viewing/updating recorded interview progress.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-034",
+"source_id": "PC-UC-009 Exception E1",
+"purpose": "Reject an interview schedule with missing required details.",
+"preconditions": "Authenticated TPO; an existing interview record is available.",
+"action_or_input": "Attempt to save a schedule without required interview details.",
+"expected_result": "PCMS does not save the schedule and leaves existing interview records unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-035",
+"source_id": "PC-UC-009 Exception E2",
+"purpose": "Block interview scheduling when TPO lacks access to the application.",
+"preconditions": "Authenticated TPO; application is outside TPO access scope; existing interview record is available.",
+"action_or_input": "Attempt to schedule or update an interview for the application.",
+"expected_result": "PCMS blocks the action and leaves existing interview records unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-036",
+"source_id": "PC-UC-010 Main Success Scenario",
+"purpose": "Maintain a placement record or outcome within TPO authority.",
+"preconditions": "Authenticated TPO; relevant Student/Alumni record and supporting placement event are accessible.",
+"action_or_input": "Open the record, enter or update supported placement information, and save.",
+"expected_result": "PCMS validates authority, links the update to the relevant record/event where applicable, saves it, and preserves outcome/history.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-037",
+"source_id": "PC-UC-010 Alternative A1",
+"purpose": "Update an Alumni placement record within the placement-record function.",
+"preconditions": "Authenticated TPO; Alumni placement record and supporting event are accessible; TPO has authority for the placement-record function.",
+"action_or_input": "Update the Alumni placement record through the placement-record function.",
+"expected_result": "PCMS updates the record within that function; the update does not grant Alumni an active placement role.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-038",
+"source_id": "PC-UC-010 Exception E1",
+"purpose": "Block unauthorized or out-of-scope placement record modification.",
+"preconditions": "Authenticated TPO; requested modification is unauthorized or out of scope; an existing placement record is available.",
+"action_or_input": "Attempt the modification.",
+"expected_result": "PCMS blocks the modification and leaves existing placement records unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-039",
+"source_id": "PC-UC-011 Main Success Scenario",
+"purpose": "Generate a supported placement report or analytics view.",
+"preconditions": "Authenticated TPO with report access.",
+"action_or_input": "Select a supported report for placement success rate, company participation trend, salary package distribution, or employment trend.",
+"expected_result": "PCMS applies TPO role and report scope, generates the requested supported report, and presents it to the TPO.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-040",
+"source_id": "PC-UC-011 Alternative A1",
+"purpose": "Select a different supported report type without changing placement data.",
+"preconditions": "Authenticated TPO with report access.",
+"action_or_input": "Select a different supported report type.",
+"expected_result": "PCMS presents the selected supported report without changing placement data.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-041",
+"source_id": "PC-UC-011 Exception E1",
+"purpose": "Block report access outside TPO scope.",
+"preconditions": "Authenticated TPO; requested report data is outside TPO scope.",
+"action_or_input": "Attempt to generate or view the out-of-scope report.",
+"expected_result": "PCMS blocks access and does not modify placement data.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-042",
+"source_id": "PC-UC-012 Main Success Scenario",
+"purpose": "View summarized placement reports and company engagement for oversight.",
+"preconditions": "Authenticated Placement Chairman with oversight access.",
+"action_or_input": "Open an oversight view and review available placement statistics, summarized reports, and company participation/engagement information.",
+"expected_result": "PCMS applies Placement Chairman scope and displays the available information without modifying operational placement records.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-043",
+"source_id": "PC-UC-012 Exception E1",
+"purpose": "Block Placement Chairman access outside the oversight scope.",
+"preconditions": "Authenticated Placement Chairman; requested information is outside the Placement Chairman scope.",
+"action_or_input": "Attempt to access the out-of-scope information.",
+"expected_result": "PCMS blocks access and does not modify operational placement records.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-044",
+"source_id": "PC-UC-013 Main Success Scenario",
+"purpose": "Publish an official placement announcement.",
+"preconditions": "Authenticated Placement Chairman with announcement-publication authority.",
+"action_or_input": "Enter supported announcement content, such as a job opportunity, recruitment drive, training/placement workshop, or internship program, and publish it.",
+"expected_result": "PCMS validates authority and content scope, publishes and records the announcement in history, and triggers PC-UC-007 for Students.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-045",
+"source_id": "PC-UC-013 Exception E1",
+"purpose": "Block official announcement publication when authority is absent or required data is missing.",
+"preconditions": "Actor lacks publication authority or required announcement data is missing.",
+"action_or_input": "Attempt to publish the announcement.",
+"expected_result": "PCMS blocks publication and creates no new announcement.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-046",
+"source_id": "PC-UC-014 Main Success Scenario",
+"purpose": "Submit company registration information subject to institute approval.",
+"preconditions": "Company/Recruiter can access the registration function.",
+"action_or_input": "Submit registration information; where approval status is configured and supplied through an authorized mechanism, record the externally determined status.",
+"expected_result": "PCMS records the registration request and any represented external approval status; company placement functions remain unavailable unless/until the recorded status permits them.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-047",
+"source_id": "PC-UC-014 Alternative A1",
+"purpose": "Complete registration submission when approval status is not represented in PCMS.",
+"preconditions": "Company/Recruiter can access registration; PCMS does not represent approval status.",
+"action_or_input": "Submit complete registration information.",
+"expected_result": "PCMS records the registration request; the institutional approval process remains outside this use case.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-048",
+"source_id": "PC-UC-014 Exception E1",
+"purpose": "Reject an incomplete company registration request.",
+"preconditions": "Company/Recruiter can access registration.",
+"action_or_input": "Submit registration information with required information missing.",
+"expected_result": "PCMS does not record a complete registration request and creates no Company/Recruiter placement authority.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-049",
+"source_id": "PC-UC-015 Main Success Scenario; PC-UC-015 Alternative A1",
+"purpose": "Create and directly publish an opportunity where direct publication is permitted.",
+"preconditions": "Authenticated and authorized Company/Recruiter; company functions permit direct publication.",
+"action_or_input": "Create a job or internship opportunity, enter role description, eligibility criteria, and application deadline, then publish it.",
+"expected_result": "PCMS validates required content and authority, records the opportunity as Published/Available, enables the published opportunity as appropriate, and triggers PC-UC-007 when it is a newly published job posting.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-050",
+"source_id": "PC-UC-015 Alternative A2",
+"purpose": "Submit an opportunity for TPO management.",
+"preconditions": "Authenticated and authorized Company/Recruiter; the supported process uses TPO-managed postings.",
+"action_or_input": "Create an opportunity with role description, eligibility criteria, and application deadline, then submit it for TPO management.",
+"expected_result": "PCMS records the opportunity as Submitted for TPO management; Student application is not enabled until publication.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-051",
+"source_id": "PC-UC-015 Exception E1",
+"purpose": "Prevent opportunity publication or submission completion when required posting content is missing.",
+"preconditions": "Authenticated and authorized Company/Recruiter.",
+"action_or_input": "Attempt to publish or submit an opportunity with required posting content missing.",
+"expected_result": "PCMS does not complete publication or submission.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-052",
+"source_id": "PC-UC-015 Exception E2",
+"purpose": "Block an unauthorized Company/Recruiter opportunity action.",
+"preconditions": "Company/Recruiter lacks authority for the requested opportunity action.",
+"action_or_input": "Attempt to create, publish, or submit the opportunity.",
+"expected_result": "PCMS blocks the action and creates no unauthorized opportunity publication.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-053",
+"source_id": "PC-UC-016 Main Success Scenario",
+"purpose": "Review applications and record a shortlist outcome for an authorized opportunity.",
+"preconditions": "Authenticated and authorized Company/Recruiter; selected applications belong to its opportunity.",
+"action_or_input": "Open relevant applications, review them, and record a shortlist outcome.",
+"expected_result": "PCMS displays only in-scope applications, records the updated application status, exposes it to authorized consumers, and triggers PC-UC-007 for the Shortlisting Update event.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-054",
+"source_id": "PC-UC-016 Alternative A1",
+"purpose": "Record an externally determined rejection update through the supported process.",
+"preconditions": "Authenticated and authorized Company/Recruiter; an externally determined rejection update is available through the supported process.",
+"action_or_input": "Record the rejection update.",
+"expected_result": "PCMS records the update and triggers PC-UC-007 for Rejection Update without imposing an unspecified rejection-state model.",
+"test_type": "alternative"
+},
+{
+"test_id": "PCMS-TC-055",
+"source_id": "PC-UC-016 Exception E1",
+"purpose": "Block access to applications unrelated to the Company/Recruiter opportunity.",
+"preconditions": "Authenticated Company/Recruiter; requested applications belong to another opportunity.",
+"action_or_input": "Attempt to access or update the unrelated applications.",
+"expected_result": "PCMS blocks access and leaves application state unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-056",
+"source_id": "PC-UC-016 Exception E2",
+"purpose": "Ensure PCMS does not make the external recruitment decision.",
+"preconditions": "An external recruitment decision has not been submitted through a supported process.",
+"action_or_input": "Open or review applications without submitting an external decision update.",
+"expected_result": "PCMS does not itself make the external recruitment decision; application state remains unchanged absent a decision update.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-057",
+"source_id": "PC-UC-017 Main Success Scenario",
+"purpose": "View permitted Alumni placement data in read-only mode.",
+"preconditions": "Authenticated Alumni; restricted Alumni access has been provided.",
+"action_or_input": "Open the permitted placement-data view.",
+"expected_result": "PCMS applies Alumni scope, displays only data made available for mentorship/networking, enforces read-only access, and excludes active placement actions.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-058",
+"source_id": "PC-UC-017 Exception E1",
+"purpose": "Block Alumni access to data outside the Alumni scope.",
+"preconditions": "Authenticated Alumni; requested placement data is outside the Alumni scope.",
+"action_or_input": "Attempt to access the out-of-scope data.",
+"expected_result": "PCMS blocks access and leaves active placement data and workflow state unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-059",
+"source_id": "PC-UC-017 Exception E2",
+"purpose": "Block Alumni modification attempts and entry into active placement workflows.",
+"preconditions": "Authenticated Alumni with restricted placement-data access.",
+"action_or_input": "Attempt to modify placement data or enter an active placement workflow.",
+"expected_result": "PCMS blocks the attempt; active placement data and workflow state remain unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-060",
+"source_id": "PC-UC-020 Main Success Scenario",
+"purpose": "Publish a TPO placement announcement.",
+"preconditions": "Authenticated TPO with announcement-publication authority.",
+"action_or_input": "Enter supported placement-related content, such as a placement drive, company visit, training session, or workshop, and publish it.",
+"expected_result": "PCMS validates authority and content scope, publishes and records the announcement in history, and triggers PC-UC-007 for Students.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-061",
+"source_id": "PC-UC-020 Exception E1",
+"purpose": "Block TPO announcement publication when required data or authority is missing.",
+"preconditions": "TPO authority is missing or required announcement data is missing.",
+"action_or_input": "Attempt to publish the announcement.",
+"expected_result": "PCMS blocks publication and creates no new announcement.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-062",
+"source_id": "PC-UC-021 Main Success Scenario",
+"purpose": "Schedule a Company-led interview for a relevant shortlisted candidate.",
+"preconditions": "Authenticated and authorized Company/Recruiter; application is within its opportunity scope and candidate is shortlisted.",
+"action_or_input": "Select the candidate and record interview date, time slot, and online/offline mode.",
+"expected_result": "PCMS validates details and scope, records Interview Scheduled, and triggers PC-UC-007 for the affected eligible/shortlisted Student(s).",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-063",
+"source_id": "PC-UC-021 Exception E1",
+"purpose": "Prevent scheduling when required interview details are missing.",
+"preconditions": "Authenticated and authorized Company/Recruiter; existing application/interview state is available.",
+"action_or_input": "Attempt to schedule an interview without required details.",
+"expected_result": "PCMS does not schedule the interview and leaves existing application/interview state unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-064",
+"source_id": "PC-UC-021 Exception E2",
+"purpose": "Block scheduling outside the Company/Recruiter opportunity scope.",
+"preconditions": "Authenticated Company/Recruiter; application is outside its opportunity scope.",
+"action_or_input": "Attempt to schedule an interview for that application.",
+"expected_result": "PCMS blocks scheduling and leaves existing application/interview state unchanged.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-065",
+"source_id": "PC-UC-022 Main Success Scenario",
+"purpose": "Extend an offer to a candidate within the Company/Recruiter opportunity scope.",
+"preconditions": "Authenticated and authorized Company/Recruiter; candidate/application is within its opportunity scope and in a supported active-selection state.",
+"action_or_input": "Select the candidate, record offer information including the represented response deadline, and extend the offer.",
+"expected_result": "PCMS validates authority and scope, records Offer Extended, and triggers PC-UC-007 for the Student.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-066",
+"source_id": "PC-UC-022 Exception E1",
+"purpose": "Block an offer for an application outside the Company/Recruiter opportunity scope.",
+"preconditions": "Authenticated and authorized Company/Recruiter; application is outside its opportunity scope.",
+"action_or_input": "Attempt to extend an offer for that application.",
+"expected_result": "PCMS blocks the action and records no offer.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-067",
+"source_id": "PC-UC-022 Exception E2",
+"purpose": "Ensure PCMS records but does not make the external hiring decision.",
+"preconditions": "No external hiring decision has been submitted for the candidate.",
+"action_or_input": "Open the candidate/application without submitting an offer decision.",
+"expected_result": "PCMS does not make the external hiring decision; no offer is recorded.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-068",
+"source_id": "PC-UC-023 Main Success Scenario",
+"purpose": "Generate a structured resume from saved Student placement-profile data.",
+"preconditions": "Authenticated Student; placement profile data exists.",
+"action_or_input": "Request resume generation.",
+"expected_result": "PCMS reads the saved profile data, generates a structured resume, and presents it to the Student.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-069",
+"source_id": "PC-UC-023 Exception E1",
+"purpose": "Report that a resume cannot be generated when required profile data is unavailable.",
+"preconditions": "Authenticated Student; required profile data for resume generation is unavailable.",
+"action_or_input": "Request resume generation.",
+"expected_result": "PCMS reports that the resume cannot be generated from the current profile and does not modify profile data.",
+"test_type": "negative"
+},
+{
+"test_id": "PCMS-TC-070",
+"source_id": "PC-UC-024 Main Success Scenario",
+"purpose": "View anonymized placement statistics and historical data made available to Students.",
+"preconditions": "Authenticated Student with access to the Student reporting view.",
+"action_or_input": "Open placement statistics/history.",
+"expected_result": "PCMS applies Student access restrictions and anonymization requirements, then displays permitted anonymized statistics and historical data without changing placement state.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-TC-071",
+"source_id": "PC-UC-024 Exception E1",
+"purpose": "Block access to non-anonymized or otherwise unauthorized sensitive placement data.",
+"preconditions": "Authenticated Student; requested reporting data is non-anonymized or otherwise outside authorized access.",
+"action_or_input": "Attempt to access the sensitive data.",
+"expected_result": "PCMS blocks access and exposes no sensitive data.",
+"test_type": "negative"
+}
+]

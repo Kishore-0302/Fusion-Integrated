@@ -17,7 +17,7 @@ For the intended taxonomy of modules not yet built, see
 
 | Code | What it allows | Held by |
 |---|---|---|
-| `placement_cell.job_posting.view` | See job postings | `Dean Academic`, `placement_chairman`, `placement_coordinator`, `placement_officer`, `student` |
+| `placement_cell.job_posting.view` | See job postings | `Dean Academic`, `alumni`, `placement_chairman`, `placement_coordinator`, `placement_officer`, `student` |
 | `placement_cell.job_posting.manage` | Create and publish postings | `placement_officer` |
 | `placement_cell.application.view` | See all applications | `Dean Academic`, `placement_chairman`, `placement_coordinator`, `placement_officer` |
 | `placement_cell.application.view_self` | See one's own applications | `student` |

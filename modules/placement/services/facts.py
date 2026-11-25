@@ -84,10 +84,26 @@ def gather(user_ids: Sequence[int], *, policy) -> dict[int, dict]:
     for uid in ids:
         person = people.get(uid)
         reg = registrations.get(uid)
+
+        raw_skills = getattr(person, "skills", None)
+        if raw_skills is None and person and hasattr(person, "extra"):
+            raw_skills = person.extra.get("skills")
+        if raw_skills is None:
+            person_skills = []
+        elif isinstance(raw_skills, (list, tuple, set)):
+            person_skills = list(raw_skills)
+        elif isinstance(raw_skills, str):
+            person_skills = [s.strip() for s in raw_skills.split(",") if s.strip()]
+        else:
+            person_skills = []
+
         f: dict = {
             "programme": getattr(person, "programme", None) or None,
             "discipline": getattr(person, "discipline", None) or None,
+            "branch": getattr(person, "discipline", None) or None,
             "batch_year": getattr(person, "batch_year", None),
+            "year": getattr(person, "batch_year", None),
+            "skills": person_skills,
             "is_placed": accepted.get(uid, 0) > 0,
             "offer_count": accepted.get(uid, 0),
             "is_registered": bool(reg and reg.status == "registered"),
@@ -95,6 +111,9 @@ def gather(user_ids: Sequence[int], *, policy) -> dict[int, dict]:
             "profile_complete": bool(getattr(person, "profile_completed", False)),
         }
         # Merged only if declared, so the rule denies with "missing_fact".
-        f.update(academic.get(uid, {}))
+        ac = academic.get(uid, {})
+        f.update(ac)
+        if "cpi" in f and "cgpa" not in f:
+            f["cgpa"] = f["cpi"]
         facts[uid] = f
     return facts

@@ -208,6 +208,9 @@ def can_accept(policy: PolicySpec, student: StudentState,
     """
     group = group_for(student.discipline, policy.group_map)
     held_category = policy.category(group, student.category_number)
+    if (held_category is None and student.category_number is None
+            and student.held_ctc_lpa is not None):
+        held_category = policy.category_for_offer(group, student.held_ctc_lpa)
     facts = _facts(policy, student, offer, group, held_category)
 
     # -- hard bars ---------------------------------------------------------
@@ -219,6 +222,12 @@ def can_accept(policy: PolicySpec, student: StudentState,
         return Decision(False, "not_registered",
                         "You are not registered for this placement season "
                         "(rule 1).", facts=facts)
+
+    # PC-AFR-014: multiple-offer handling applied only to extent explicit logic exists
+    if not policy.categories:
+        return Decision(True, "no_policy_restriction",
+                        "No multiple-offer restriction is configured for this season.",
+                        facts=facts)
 
     # -- first offer -------------------------------------------------------
     if student.accepted_offer_count == 0:
@@ -247,6 +256,11 @@ def can_accept(policy: PolicySpec, student: StudentState,
             "an IT company, irrespective of the package.", facts=facts)
 
     if held_category is None:
+        if group is not None and not policy.categories_for(group):
+            return Decision(
+                True, "no_policy_restriction",
+                f"No multiple-offer restriction configured for group '{group}'.",
+                facts=facts)
         # Deny rather than guess a multiplier for an unmapped discipline.
         return Decision(
             False, "no_category_for_discipline",
@@ -341,6 +355,8 @@ def can_apply(policy: PolicySpec, student: StudentState,
     offer = offer or OfferSpec()
     group = group_for(student.discipline, policy.group_map)
     category = policy.category(group, student.category_number)
+    if category is None and student.category_number is None and student.held_ctc_lpa is not None:
+        category = policy.category_for_offer(group, student.held_ctc_lpa)
     facts = _facts(policy, student, offer, group, category)
 
     if student.is_debarred:
@@ -351,6 +367,11 @@ def can_apply(policy: PolicySpec, student: StudentState,
         return Decision(False, "not_registered",
                         "Register with the Placement Cell before applying "
                         "(rule 1).", facts=facts)
+
+    if not policy.categories:
+        return Decision(True, "no_policy_restriction",
+                        "No multiple-offer restriction is configured for this season.",
+                        facts=facts)
 
     if student.accepted_offer_count == 0:
         return Decision(True, "unplaced", "You may apply.", facts=facts)
@@ -385,6 +406,11 @@ def can_apply(policy: PolicySpec, student: StudentState,
                         facts=facts)
 
     if category is None:
+        if group is not None and not policy.categories_for(group):
+            return Decision(
+                True, "no_policy_restriction",
+                f"No multiple-offer restriction configured for group '{group}'.",
+                facts=facts)
         return Decision(False, "no_category_for_discipline",
                         "Your discipline is not mapped to a placement "
                         "category. Contact the placement office.", facts=facts)

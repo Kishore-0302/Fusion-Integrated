@@ -1,4 +1,4 @@
-"""Job postings (PC-UC-006, PC-UC-015, PC-WF-003, PC-BR-003/004/005/006)."""
+"""Job postings (PC-UC-006, PC-UC-015, BW-PC-01..03, CW-PC-01, PC-BR-003/004/005/006)."""
 from __future__ import annotations
 
 from django.db import transaction

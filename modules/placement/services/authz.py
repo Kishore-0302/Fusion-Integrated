@@ -1,4 +1,4 @@
-"""Write authority, stated once. Every service write path calls it.
+"""Write authority, stated once (PC-BR-024). Every service write path calls it.
 
 `scope` proves a row is readable, which every student's own application is —
 never that the caller may change it. Recruiters hold no permission codes by

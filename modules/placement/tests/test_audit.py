@@ -1,4 +1,4 @@
-"""Reading the audit trail (PC-BR-008).
+"""Reading the audit trail (PC-AFR-009, PC-UC-004).
 
 The interesting property is not that the trail exists — services already write
 it — but that each reader sees the right slice of it. A student is owed their own

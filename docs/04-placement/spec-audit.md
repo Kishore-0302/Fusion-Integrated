@@ -26,6 +26,12 @@ The traceability matrix's mapping columns (`Mapped UC(s)`, `Mapped BR(s)`) are
 empty in the file, so requirement coverage below was established by reading
 each requirement, not by trusting the matrix.
 
+**Audit freshness:** this document began as an audit of the pre-Assignment-9
+implementation. The G3/G4 status and remaining open decisions below have been
+rechecked against the current implementation. The numeric summary and older
+traceability inventory have not been recomputed after the imported changes and
+must not be read as current coverage totals.
+
 ## Summary
 
 | | Implemented | Partial | Missing | Deviation |
@@ -70,30 +76,26 @@ This may be the right call for the institute — an open registration form is an
 abuse surface — but it departs from the document and should be decided, not
 inherited.
 
-### G3. The TPO cannot correct a placement record
-`PC-UC-010`, `PC-BR-029`, `PC-AFR-031`, `PC-AFR-032` · **partial / missing**
+### G3. TPO placement-record updates are implemented
+`PC-BR-029`, `PC-AFR-031`, `PC-AFR-032` · **implemented in current code; citation audit remains**
 
-What exists: records are written on offer acceptance (`PC-BR-014`), the TPO can
-record an off-campus placement, and a student can declare not joining or submit
-an offer letter. What does not: any way for the TPO to *update* an existing
-record — a wrong CTC, a company correction, a deactivation — and any record
-handling for alumni (`PC-AFR-032`).
+`services/clearance.py::update_record` permits a TPO with
+`placement_cell.record.manage` to update the allowed placement-record fields
+(`ctc_lpa`, `kind`, and `is_active`). The API exposes the update operation, and
+`tests/test_clearance.py::test_tpo_can_update_student_and_alumni_placement_record`
+covers student and alumni records. This closes the record-update gap described
+in the original audit. It does not grant alumni write access.
 
-The one `PC-BR-029` citation (`domain/state_machine.py`) is about offer
-revocation going through the TPO, which is related but is not this rule.
-
-### G4. Reports stop at one season
+### G4. Cross-season reporting exists; historical student selection is partial
 `PC-AFR-034`, `PC-AFR-035`, `PC-AFR-036`, `PC-AFR-016` · **partial**
 
-`services/stats.py` gives, per season: placement rate (`PC-AFR-033` ✓), a
-by-company breakdown, a by-discipline breakdown, and median / mean / max CTC.
-
-- **Company participation *trend*** (`034`) and **employment *trend*** (`036`)
-  need figures across seasons. Nothing compares seasons.
-- **Salary package *distribution*** (`035`) is three summary numbers, not a
-  distribution. Bands would answer it, subject to the existing small-cell floor.
-- **Historical data for students** (`016`): the API accepts `?season=`, but
-  the Reports page has no season picker, so a student cannot reach a past season.
+`services/stats.py` now provides company participation and employment trends
+across configured seasons, plus salary distribution reporting and per-season
+figures. `api/views.py` exposes the report endpoints. The reports page still
+calls `useStats()` without a season argument and has no season selector, so
+students cannot select historical statistics through that UI (`PC-AFR-016`).
+This leaves the historical-student-view requirement partial even though the
+backend accepts a season parameter.
 
 ---
 
@@ -186,8 +188,8 @@ company participation (`companies_participated` and the by-company breakdown).
    finding checkable. Worth a generated reference page, as for ELM.
 2. **G3 — record corrections.** Smallest real gap, and a wrong placement record
    is a live data-quality problem.
-3. **G4 — trends, distribution, season picker.** Contained to stats and the
-   Reports page.
+3. **G4 — historical student season selection.** Backend trends and report
+   endpoints exist; the student-facing reports page needs a season selector.
 4. **G1 and G2 need decisions first** — who counts as an alumnus, and whether
    companies may register themselves. Neither should be built on a guess.
 

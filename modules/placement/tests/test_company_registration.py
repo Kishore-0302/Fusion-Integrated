@@ -2,11 +2,14 @@
 import threading
 
 import pytest
+from django.conf import settings
 from django.db import IntegrityError, connection
 
 from core.api.exceptions import ConflictError
 from modules.placement.models import Company
 from modules.placement.services import companies
+
+_using_sqlite = settings.DATABASES["default"]["ENGINE"] == "django.db.backends.sqlite3"
 
 
 @pytest.mark.django_db
@@ -16,6 +19,7 @@ def test_pc_uc_014_registering_a_name_twice_gives_each_its_own_slug():
     assert (first.slug, second.slug) == ("acme-corp", "acme-corp-2")
 
 
+@pytest.mark.skipif(_using_sqlite, reason="SQLite :memory: cannot handle concurrent transactions — requires PostgreSQL")
 @pytest.mark.django_db(transaction=True)
 def test_pc_uc_014_two_registrations_racing_for_one_slug_both_succeed(monkeypatch):
     # Hold both threads after they choose a slug, so both choose before either inserts.

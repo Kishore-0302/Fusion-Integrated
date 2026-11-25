@@ -14,6 +14,7 @@ from django.db.models import Avg, Count, Max
 
 from modules.placement.models import (
     Application,
+    JobPosting,
     PlacementPolicy,
     PlacementRecord,
     PlacementRegistration,
@@ -137,7 +138,7 @@ def student_view(*, season: str) -> dict:
 
 
 def staff_view(*, season: str) -> dict:
-    """Operational figures for the TPO and chairman (PC-UC-011, PC-UC-012)."""
+    """Operational figures for the TPO and chairman (PC-UC-011, PC-UC-012, PC-AFR-033)."""
     policy = PlacementPolicy.objects.filter(season=season).first()
     if policy is None:
         return {"season": season, "available": False}
@@ -154,17 +155,159 @@ def staff_view(*, season: str) -> dict:
         Application.objects.filter(posting__placement_year=season)
         .values_list("status").annotate(n=Count("id")))
 
+    registered_count = PlacementRegistration.objects.filter(
+        policy=policy, status="registered").count()
+    placed_count = agg["n"] or 0
+    success_rate = (
+        round(placed_count * 100 / registered_count, 2)
+        if registered_count else 0.0
+    )
+
     return {
         "season": season,
         "available": True,
-        "registered": PlacementRegistration.objects.filter(
-            policy=policy, status="registered").count(),
+        "registered": registered_count,
         "debarred": PlacementRegistration.objects.filter(
             policy=policy, status="debarred").count(),
-        "placed": agg["n"] or 0,
+        "placed": placed_count,
+        "success_rate": success_rate,
+        "placement_rate": success_rate,
         "median_ctc": str(_median(ctcs)) if ctcs else None,
-        "mean_ctc": str(round(agg["mean"], 2)) if agg["mean"] else None,
-        "max_ctc": str(agg["top"]) if agg["top"] else None,
+        "mean_ctc": (
+            f"{Decimal(str(round(agg['mean'], 2))):.2f}" if agg["mean"] is not None else None
+        ),
+        "max_ctc": f"{Decimal(str(agg['top'])):.2f}" if agg["top"] is not None else None,
         "by_company": by_company,
         "applications_by_status": by_status,
     }
+
+
+def placement_success_rate(*, season: str) -> dict:
+    """PC-AFR-033: Dedicated placement success-rate report for TPO."""
+    policy = PlacementPolicy.objects.filter(season=season).first()
+    if policy is None:
+        return {"season": season, "available": False, "reason": "No policy for season."}
+    records = _counted_records(policy)
+    registered = PlacementRegistration.objects.filter(policy=policy, status="registered").count()
+    placed = records.count()
+    rate = round(placed * 100 / registered, 2) if registered else 0.0
+    debarred = PlacementRegistration.objects.filter(policy=policy, status="debarred").count()
+    return {
+        "season": season,
+        "available": True,
+        "registered": registered,
+        "placed": placed,
+        "success_rate": rate,
+        "placement_rate": rate,
+        "debarred": debarred,
+    }
+
+
+def company_participation_trends() -> list[dict]:
+    """PC-AFR-034: Company participation trend across seasons."""
+    policies = list(PlacementPolicy.objects.order_by("season"))
+    seen_companies: set[int] = set()
+    trends = []
+    for pol in policies:
+        records = _counted_records(pol).select_related("company")
+        co_in_season = {r.company_id: r.company.name for r in records}
+        co_ids = set(co_in_season.keys())
+        new_ids = co_ids - seen_companies
+        repeat_ids = co_ids & seen_companies
+        seen_companies.update(co_ids)
+
+        trends.append({
+            "season": pol.season,
+            "companies_count": len(co_ids),
+            "company_names": sorted(co_in_season.values()),
+            "new_companies_count": len(new_ids),
+            "new_companies": sorted(co_in_season[i] for i in new_ids),
+            "repeat_companies_count": len(repeat_ids),
+            "repeat_companies": sorted(co_in_season[i] for i in repeat_ids),
+            "postings_count": JobPosting.objects.filter(placement_year=pol.season).count(),
+        })
+    return trends
+
+
+def salary_distribution(*, season: str) -> dict:
+    """PC-AFR-035: Salary package distribution report."""
+    policy = PlacementPolicy.objects.filter(season=season).first()
+    if policy is None:
+        return {"season": season, "available": False, "reason": "No policy for season."}
+
+    records = _counted_records(policy)
+    ctcs = [r for r in records.values_list("ctc_lpa", flat=True) if r is not None]
+    total = len(ctcs)
+    if not total:
+        return {
+            "season": season,
+            "available": True,
+            "total_placed": 0,
+            "min_ctc": None,
+            "max_ctc": None,
+            "mean_ctc": None,
+            "median_ctc": None,
+            "brackets": [],
+            "distribution": {},
+        }
+
+    b_under_6 = sum(1 for c in ctcs if c < Decimal("6.0"))
+    b_6_10 = sum(1 for c in ctcs if Decimal("6.0") <= c < Decimal("10.0"))
+    b_10_15 = sum(1 for c in ctcs if Decimal("10.0") <= c < Decimal("15.0"))
+    b_15_25 = sum(1 for c in ctcs if Decimal("15.0") <= c < Decimal("25.0"))
+    b_above_25 = sum(1 for c in ctcs if c >= Decimal("25.0"))
+
+    def pct(count: int) -> float:
+        return round(count * 100 / total, 2) if total else 0.0
+
+    brackets = [
+        {"bracket": "< 6 LPA", "count": b_under_6, "percentage": pct(b_under_6)},
+        {"bracket": "6-10 LPA", "count": b_6_10, "percentage": pct(b_6_10)},
+        {"bracket": "10-15 LPA", "count": b_10_15, "percentage": pct(b_10_15)},
+        {"bracket": "15-25 LPA", "count": b_15_25, "percentage": pct(b_15_25)},
+        {"bracket": "> 25 LPA", "count": b_above_25, "percentage": pct(b_above_25)},
+    ]
+    distribution = {b["bracket"]: b["count"] for b in brackets}
+
+    agg = records.aggregate(mean=Avg("ctc_lpa"), top=Max("ctc_lpa"))
+    return {
+        "season": season,
+        "available": True,
+        "total_placed": total,
+        "min_ctc": str(min(ctcs)) if ctcs else None,
+        "max_ctc": str(agg["top"]) if agg["top"] is not None else None,
+        "mean_ctc": str(round(agg["mean"], 2)) if agg["mean"] is not None else None,
+        "median_ctc": str(_median(ctcs)) if ctcs else None,
+        "brackets": brackets,
+        "distribution": distribution,
+    }
+
+
+def employment_trends() -> list[dict]:
+    """PC-AFR-036: Employment trends across seasons."""
+    policies = list(PlacementPolicy.objects.order_by("season"))
+    trends = []
+    for pol in policies:
+        records = _counted_records(pol)
+        agg = records.aggregate(n=Count("id"), mean=Avg("ctc_lpa"), top=Max("ctc_lpa"))
+        ctcs = [r for r in records.values_list("ctc_lpa", flat=True) if r is not None]
+        registered = PlacementRegistration.objects.filter(policy=pol, status="registered").count()
+        placed = agg["n"] or 0
+        rate = round(placed * 100 / registered, 2) if registered else 0.0
+        offers = Application.objects.filter(
+            posting__placement_year=pol.season,
+            status__in=("offer_issued", "offer_accepted")).count()
+
+        trends.append({
+            "season": pol.season,
+            "registered": registered,
+            "placed": placed,
+            "placement_rate": rate,
+            "success_rate": rate,
+            "total_offers": offers,
+            "companies_participated": len({r.company_id for r in records}),
+            "median_ctc": str(_median(ctcs)) if ctcs else None,
+            "mean_ctc": str(round(agg["mean"], 2)) if agg["mean"] is not None else None,
+            "max_ctc": str(agg["top"]) if agg["top"] is not None else None,
+        })
+    return trends

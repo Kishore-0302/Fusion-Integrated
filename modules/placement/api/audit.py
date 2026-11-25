@@ -1,4 +1,4 @@
-"""Reading the audit trail (PC-BR-008).
+"""Reading the audit trail (PC-AFR-009, PC-UC-004).
 
 Two records: every application state change, and every conduct incident.
 

@@ -13,7 +13,7 @@ from core.db.mixins import TimeStampedModel, UserScopedModel
 
 # -- Announcements and notifications (PC-UC-013/020, PC-BR-017/018/021) --------
 class Announcement(TimeStampedModel):
-    """PC-BR-017 bounds the topics. PC-BR-018 keeps history, so withdrawal
+    """PC-BR-017 bounds the topics. PC-AFR-043 keeps history, so withdrawal
     sets a flag rather than deleting."""
 
     TOPIC = [("drive", "Placement drive"), ("company_visit", "Company visit"),

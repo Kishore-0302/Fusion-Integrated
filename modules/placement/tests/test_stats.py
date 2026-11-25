@@ -94,3 +94,30 @@ def test_the_staff_view_counts_the_same_students(season):
     assert (view["registered"], view["placed"], view["debarred"]) == (10, 5, 1)
     assert view["max_ctc"] == "10.00"
     assert [row["placed"] for row in view["by_company"]] == [5]
+
+
+def test_student_view_does_not_expose_user_ids_or_names(season):
+    """PC-BR-016: student view must only have aggregates."""
+    policy, company = season
+    _season_of_ten(policy, company, placed=5)  # exactly MIN_CELL
+    stats.rebuild(season=SEASON)
+    view = stats.student_view(season=SEASON)
+    assert view["available"] is True
+    # No user IDs or names should be in the response
+    view_str = str(view)
+    for uid in range(5000, 5005):
+        assert str(uid) not in view_str
+    # Companies list should only contain company name + count, not CTC per student
+    for co in view.get("companies", []):
+        assert "user_id" not in co
+        assert "ctc_lpa" not in co
+
+
+def test_student_view_suppresses_small_cells(season):
+    """PC-BR-016: fewer than MIN_CELL placements -> available=False."""
+    policy, company = season
+    _season_of_ten(policy, company, placed=4)  # below MIN_CELL=5
+    stats.rebuild(season=SEASON)
+    view = stats.student_view(season=SEASON)
+    assert view["available"] is False
+

@@ -1,0 +1,578 @@
+[
+{
+"test_id": "PCMS-AFR-001",
+"source_id": "PC-AFR-001 — profile creation",
+"purpose": "Verify a Student can create a personal placement profile.",
+"preconditions": ["An authenticated Student has no placement profile."],
+"action_or_input": "Create and save a personal placement profile.",
+"expected_result": "PCMS saves a new placement profile for that Student.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-002",
+"source_id": "PC-AFR-002 — profile maintenance",
+"purpose": "Verify a Student can maintain their personal placement profile.",
+"preconditions": ["An authenticated Student has an existing placement profile."],
+"action_or_input": "Edit and save permitted fields in the Student's own profile.",
+"expected_result": "PCMS saves the profile updates.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-003",
+"source_id": "PC-AFR-003 — profile data",
+"purpose": "Verify the profile stores the specified data categories.",
+"preconditions": ["An authenticated Student can create or update their placement profile."],
+"action_or_input": "Save academic records, skills, achievements, certifications, and supported placement-profile documents in the profile.",
+"expected_result": "PCMS persists each listed data category and makes it available to supported downstream functions.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-004",
+"source_id": "PC-AFR-004 — configured profile completeness",
+"purpose": "Verify the configured profile-completeness condition gates application submission.",
+"preconditions": ["Profile completeness is configured as required for application."],
+"action_or_input": "Attempt application submission once with a profile that fails the configured completeness condition and once with a profile that satisfies it; in the latter case, use a Student who meets the posting eligibility criteria.",
+"expected_result": "PCMS prevents submission when the completeness condition fails and permits submission when it passes.",
+"test_type": "validation"
+},
+{
+"test_id": "PCMS-AFR-005",
+"source_id": "PC-AFR-005 — structured resume",
+"purpose": "Verify PCMS generates a structured resume from saved profile data.",
+"preconditions": ["A Student has saved placement-profile data."],
+"action_or_input": "Request a structured resume.",
+"expected_result": "PCMS generates a structured resume using the Student's saved profile data.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-006",
+"source_id": "PC-AFR-006 — opportunity browsing",
+"purpose": "Verify Students can browse opportunities made available through PCMS.",
+"preconditions": ["A Student is authenticated.", "Job and internship opportunities have been published or otherwise made available to the Student through PCMS."],
+"action_or_input": "Open the Student opportunity view.",
+"expected_result": "The view exposes the job and internship opportunities available to the Student.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-007",
+"source_id": "PC-AFR-007 — application submission",
+"purpose": "Verify an eligible Student can apply for a job posting.",
+"preconditions": ["A Student is eligible for a job posting.", "Any applicable profile-completeness condition is satisfied."],
+"action_or_input": "Submit an application to the job posting.",
+"expected_result": "PCMS records the application as Applied.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-008",
+"source_id": "PC-AFR-008 — posting eligibility",
+"purpose": "Verify PCMS evaluates recorded posting eligibility criteria before accepting an application.",
+"preconditions": ["A job posting has recorded eligibility criteria.", "One Student meets those criteria and another does not.", "Any applicable profile-completeness condition is satisfied for both."],
+"action_or_input": "Have each Student attempt to apply to the posting.",
+"expected_result": "PCMS permits the qualifying Student's application and prevents the non-qualifying Student's application.",
+"test_type": "validation"
+},
+{
+"test_id": "PCMS-AFR-009",
+"source_id": "PC-AFR-009 — application history",
+"purpose": "Verify PCMS maintains application history.",
+"preconditions": ["A Student has submitted an application to an eligible job posting."],
+"action_or_input": "Review the application history, including after supported application-state changes.",
+"expected_result": "PCMS maintains the recorded application history for the Student's application.",
+"test_type": "persistence"
+},
+{
+"test_id": "PCMS-AFR-010",
+"source_id": "PC-AFR-010 — placement status visibility",
+"purpose": "Verify Students can track supported placement states and related status information.",
+"preconditions": ["The Student has placement records representing the supported states Applied, Shortlisted, Interview Scheduled, Offer Extended, Offer Accepted, and Offer Rejected, with relevant interview, offer, and final-placement status information recorded."],
+"action_or_input": "View the Student's placement records and status information.",
+"expected_result": "PCMS exposes the supported states and relevant recorded interview, offer, and final-placement status information to the Student.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-011",
+"source_id": "PC-AFR-011 — offer acceptance deadline",
+"purpose": "Verify a Student can accept a recorded offer while the applicable response deadline permits it.",
+"preconditions": ["A Student has a recorded Offer Extended job offer with an applicable response deadline."],
+"action_or_input": "Attempt to accept the offer while the deadline permits a response, then attempt acceptance after the represented deadline.",
+"expected_result": "PCMS permits acceptance while the deadline allows a response and does not permit acceptance after the represented deadline.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-AFR-012",
+"source_id": "PC-AFR-012 — offer rejection deadline",
+"purpose": "Verify a Student can reject a recorded offer while the applicable response deadline permits it.",
+"preconditions": ["A Student has a recorded Offer Extended job offer with an applicable response deadline."],
+"action_or_input": "Attempt to reject the offer while the deadline permits a response.",
+"expected_result": "PCMS permits the response and records the offer as Offer Rejected.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-013",
+"source_id": "PC-AFR-013 — placement update on acceptance",
+"purpose": "Verify accepting an offer updates the Student's placement record.",
+"preconditions": ["A Student has a recorded job offer that can be accepted within the applicable deadline."],
+"action_or_input": "Accept the job offer.",
+"expected_result": "PCMS updates the Student's placement record to reflect the accepted placement outcome.",
+"test_type": "state-change"
+},
+{
+"test_id": "PCMS-AFR-014",
+"source_id": "PC-AFR-014 — multiple-offer policy boundary",
+"purpose": "Verify multiple-offer handling respects only policy logic explicitly represented in PCMS.",
+"preconditions": ["A Student has multiple recorded offers; exercise the scenario both without an explicitly represented institutional policy rule and, where such a rule exists, with that rule configured."],
+"action_or_input": "Attempt the relevant offer actions under each represented policy condition.",
+"expected_result": "PCMS does not enforce an unsupported multiple-offer restriction; when an explicit policy rule is represented, PCMS applies that rule.",
+"test_type": "boundary"
+},
+{
+"test_id": "PCMS-AFR-015",
+"source_id": "PC-AFR-015 — anonymized statistics",
+"purpose": "Verify Students can view available anonymized placement statistics.",
+"preconditions": ["Placement statistics have been made available to the Student role."],
+"action_or_input": "View placement statistics as a Student.",
+"expected_result": "PCMS displays the available anonymized statistics without exposing unauthorized identifiable or sensitive placement data.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-016",
+"source_id": "PC-AFR-016 — historical placement data",
+"purpose": "Verify Students can view historical placement data made available to their role.",
+"preconditions": ["Historical placement data has been made available to the Student role."],
+"action_or_input": "View historical placement data as a Student.",
+"expected_result": "PCMS exposes the historical placement data made available to the Student role.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-017",
+"source_id": "PC-AFR-017 — TPO posting management",
+"purpose": "Verify the TPO can create and manage job postings.",
+"preconditions": ["An authorized TPO is authenticated.", "The TPO is acting on behalf of or in coordination with a Company/Recruiter."],
+"action_or_input": "Create, upload, update, and manage a job posting through the supported posting function.",
+"expected_result": "PCMS allows the TPO to manage the posting and reach a supported publish outcome.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-018",
+"source_id": "PC-AFR-018 — Company job opportunity posting",
+"purpose": "Verify the supported Company/Recruiter job-opportunity posting paths.",
+"preconditions": ["A Company/Recruiter is authorized for the relevant posting activity."],
+"action_or_input": "Exercise direct publication of a job opportunity and submission of a job opportunity through the supported TPO-managed publication path.",
+"expected_result": "PCMS supports direct publication where authorized and supports submission through the TPO-managed path.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-019",
+"source_id": "PC-AFR-019 — Company internship opportunity posting",
+"purpose": "Verify an authorized Company/Recruiter can publish or submit an internship opportunity.",
+"preconditions": ["A Company/Recruiter is authorized for the relevant posting activity."],
+"action_or_input": "Create an internship opportunity and publish it directly or submit it through a supported PCMS posting path.",
+"expected_result": "PCMS supports the authorized internship opportunity publication or submission.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-020",
+"source_id": "PC-AFR-020 — eligibility criteria recording",
+"purpose": "Verify permitted posting actors can record eligibility criteria within their posting scopes.",
+"preconditions": ["An authorized TPO and an authorized Company/Recruiter can manage representative opportunities within their respective scopes."],
+"action_or_input": "Record eligibility criteria for an opportunity through each authorized actor path.",
+"expected_result": "PCMS records eligibility criteria for opportunities each actor is authorized to manage.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-021",
+"source_id": "PC-AFR-021 — required job posting content",
+"purpose": "Verify job postings require a role description, eligibility criteria, and application deadline.",
+"preconditions": ["An authorized actor can create a job posting."],
+"action_or_input": "Attempt to save or publish a posting with the role description missing, with the eligibility criteria missing, and with the application deadline missing; then submit a posting containing all three.",
+"expected_result": "PCMS validates each posting missing a required item and permits a posting containing all three required items.",
+"test_type": "validation"
+},
+{
+"test_id": "PCMS-AFR-022",
+"source_id": "PC-AFR-022 — supported eligibility criteria",
+"purpose": "Verify the supported eligibility criteria vocabulary can be represented.",
+"preconditions": ["An authorized actor can record criteria for an opportunity."],
+"action_or_input": "Record criteria using CGPA, branch, year, skills, and other explicitly configured criteria.",
+"expected_result": "PCMS can represent the stated criteria without requiring criteria that are not specified as mandatory.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-023",
+"source_id": "PC-AFR-023 — TPO application review",
+"purpose": "Verify the TPO can view and review applications within the TPO's authorized scope.",
+"preconditions": ["An authorized TPO has a defined placement scope.", "Applications exist both within and outside that scope."],
+"action_or_input": "Open and review applications as the TPO.",
+"expected_result": "PCMS allows access to applications within the TPO's scope and prevents access to applications outside that scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-024",
+"source_id": "PC-AFR-024 — TPO application filtering",
+"purpose": "Verify the TPO can filter applications within the TPO's authorized scope.",
+"preconditions": ["An authorized TPO has access to multiple applications within the TPO's placement scope."],
+"action_or_input": "Apply a supported filter to the application set.",
+"expected_result": "PCMS displays the relevant filtered application set without changing application state.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-025",
+"source_id": "PC-AFR-025 — TPO application administration",
+"purpose": "Verify the TPO can administratively manage applications without taking unsupported Company selection decisions.",
+"preconditions": ["An authorized TPO has applications within the TPO's placement scope."],
+"action_or_input": "Use supported TPO administrative application-management actions and inspect whether those actions assign Company selection outcomes.",
+"expected_result": "PCMS supports TPO administrative management within scope and does not assign unsupported Company selection authority to the TPO.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-026",
+"source_id": "PC-AFR-026 — TPO-coordinated interview scheduling",
+"purpose": "Verify the TPO can schedule interviews in coordination with Companies/Recruiters.",
+"preconditions": ["An authorized TPO is coordinating with a Company/Recruiter.", "A candidate has a supported shortlisted state."],
+"action_or_input": "Record a valid interview schedule for the candidate.",
+"expected_result": "PCMS records the TPO-coordinated interview schedule.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-027",
+"source_id": "PC-AFR-027 — Company interview scheduling",
+"purpose": "Verify an authorized Company/Recruiter can schedule interviews for relevant shortlisted candidates.",
+"preconditions": ["A Company/Recruiter is authorized.", "A candidate has been shortlisted for an opportunity belonging to that Company."],
+"action_or_input": "Schedule an interview for the candidate.",
+"expected_result": "PCMS permits scheduling for the relevant candidate and opportunity within the Company's authorized scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-028",
+"source_id": "PC-AFR-028 — required interview details",
+"purpose": "Verify interview schedules record the required date, time slot, and mode.",
+"preconditions": ["An authorized actor can schedule an interview."],
+"action_or_input": "Attempt to create a schedule with the date missing, with the time slot missing, and with the mode missing; then create schedules using online and offline modes.",
+"expected_result": "PCMS validates schedules missing a required detail and accepts schedules with the required details and either supported mode.",
+"test_type": "validation"
+},
+{
+"test_id": "PCMS-AFR-029",
+"source_id": "PC-AFR-029 — TPO interview progress tracking",
+"purpose": "Verify the TPO can track interview progress and status within the TPO's scope.",
+"preconditions": ["An authorized TPO has interview records within the TPO's placement scope with progress or status recorded."],
+"action_or_input": "View interview progress and status as the TPO.",
+"expected_result": "PCMS displays the current recorded interview progress and status for relevant records.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-030",
+"source_id": "PC-AFR-030 — placement outcome tracking",
+"purpose": "Verify the TPO can track recorded placement outcomes and final status.",
+"preconditions": ["Supported placement outcomes and final-placement states are recorded."],
+"action_or_input": "View placement outcomes and final placement status as the TPO.",
+"expected_result": "PCMS displays the supported recorded outcomes and final states.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-031",
+"source_id": "PC-AFR-031 — Student placement record maintenance",
+"purpose": "Verify the TPO can update supported Student placement records.",
+"preconditions": ["An authorized TPO can access a supported Student placement record."],
+"action_or_input": "Update the Student placement record through the supported placement-record function.",
+"expected_result": "PCMS persists the supported update.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-032",
+"source_id": "PC-AFR-032 — Alumni placement record maintenance",
+"purpose": "Verify the TPO can update supported Alumni placement records while Alumni access remains read-only.",
+"preconditions": ["An authorized TPO can access a supported Alumni placement record.", "An Alumni user has restricted placement-data access."],
+"action_or_input": "Update the Alumni placement record as the TPO, then attempt to modify placement data as the Alumni user.",
+"expected_result": "PCMS persists the TPO's supported update and prevents the Alumni user from modifying placement data.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-033",
+"source_id": "PC-AFR-033 — placement success-rate report",
+"purpose": "Verify the TPO can generate a placement success-rate report.",
+"preconditions": ["An authorized TPO can access placement reporting."],
+"action_or_input": "Request a placement success-rate report.",
+"expected_result": "PCMS provides the supported placement success-rate report.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-034",
+"source_id": "PC-AFR-034 — company participation trend report",
+"purpose": "Verify the TPO can generate company participation trend reporting.",
+"preconditions": ["An authorized TPO can access placement reporting."],
+"action_or_input": "Request a company participation trend report.",
+"expected_result": "PCMS provides the supported company participation trend report.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-035",
+"source_id": "PC-AFR-035 — salary package distribution report",
+"purpose": "Verify the TPO can generate salary package distribution reporting.",
+"preconditions": ["An authorized TPO can access placement reporting."],
+"action_or_input": "Request a salary package distribution report.",
+"expected_result": "PCMS provides the supported salary package distribution report.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-036",
+"source_id": "PC-AFR-036 — employment trend report",
+"purpose": "Verify the TPO can generate employment trend reporting.",
+"preconditions": ["An authorized TPO can access placement reporting."],
+"action_or_input": "Request an employment trend report.",
+"expected_result": "PCMS provides the supported employment trend report.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-037",
+"source_id": "PC-AFR-037 — Chairman statistics oversight",
+"purpose": "Verify the Placement Chairman can view placement statistics available for oversight.",
+"preconditions": ["Placement statistics are available in PCMS for oversight.", "The Placement Chairman is authenticated."],
+"action_or_input": "View placement statistics as the Placement Chairman.",
+"expected_result": "PCMS displays the available placement statistics for oversight.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-038",
+"source_id": "PC-AFR-038 — Chairman summarized reports",
+"purpose": "Verify the Placement Chairman can view summarized placement reports.",
+"preconditions": ["Summarized placement reports are available in PCMS.", "The Placement Chairman is authenticated."],
+"action_or_input": "View summarized placement reports.",
+"expected_result": "PCMS displays the available summarized reports for oversight.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-039",
+"source_id": "PC-AFR-039 — company participation oversight",
+"purpose": "Verify the Placement Chairman can monitor company participation and engagement using PCMS information.",
+"preconditions": ["Company participation or engagement information is recorded in PCMS.", "The Placement Chairman is authenticated."],
+"action_or_input": "View the available company participation and engagement information.",
+"expected_result": "PCMS exposes supported participation and engagement information derived from PCMS records.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-040",
+"source_id": "PC-AFR-040 — TPO announcements",
+"purpose": "Verify an authorized TPO can publish a placement-related announcement.",
+"preconditions": ["An authorized TPO is authenticated."],
+"action_or_input": "Publish a placement-related announcement.",
+"expected_result": "PCMS publishes the announcement.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-041",
+"source_id": "PC-AFR-041 — Placement Chairman announcements",
+"purpose": "Verify the Placement Chairman can publish official placement-related announcements.",
+"preconditions": ["The Placement Chairman is authenticated."],
+"action_or_input": "Publish an official placement-related announcement.",
+"expected_result": "PCMS publishes the official announcement.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-042",
+"source_id": "PC-AFR-042 — supported announcement content",
+"purpose": "Verify announcements can represent the supported placement topics.",
+"preconditions": ["An authorized TPO or Placement Chairman can publish announcements."],
+"action_or_input": "Create announcements covering placement drives, job opportunities, recruitment drives, company visits, training sessions, training and placement workshops, workshops, and internship programs.",
+"expected_result": "PCMS can represent each topic listed in the requirement.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-043",
+"source_id": "PC-AFR-043 — announcement history",
+"purpose": "Verify PCMS maintains announcement history for authorized access.",
+"preconditions": ["An authorized actor has published an announcement."],
+"action_or_input": "Open announcement history using an authorized account.",
+"expected_result": "The published announcement is available in announcement history.",
+"test_type": "persistence"
+},
+{
+"test_id": "PCMS-AFR-044",
+"source_id": "PC-AFR-044 — Company registration submission",
+"purpose": "Verify a Company/Recruiter can submit registration information subject to institute approval.",
+"preconditions": ["A Company/Recruiter can access the PCMS registration function."],
+"action_or_input": "Submit registration information for participation in PCMS.",
+"expected_result": "PCMS records the submitted information as subject to institute approval.",
+"test_type": "positive"
+},
+{
+"test_id": "PCMS-AFR-045",
+"source_id": "PC-AFR-045 — Company authorization status",
+"purpose": "Verify Company/Recruiter placement functions depend on an available status that permits them.",
+"preconditions": ["A Company/Recruiter has no available authorization status permitting placement functions; also prepare a Company/Recruiter with a status that permits them."],
+"action_or_input": "Attempt a placement function under each authorization status.",
+"expected_result": "PCMS restricts the function without a permitting status and allows it when an available status permits it; the external institutional approval decision is not modeled as a PCMS decision.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-046",
+"source_id": "PC-AFR-046 — Company application review",
+"purpose": "Verify an authorized Company/Recruiter can view and review applications for its own opportunities.",
+"preconditions": ["A Company/Recruiter is authorized.", "Applications exist for one of its opportunities and for an opportunity outside its scope."],
+"action_or_input": "View and review the available applications.",
+"expected_result": "PCMS permits review of applications tied to the Company's authorized opportunities and limits access to that scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-047",
+"source_id": "PC-AFR-047 — Company shortlist update",
+"purpose": "Verify an authorized Company/Recruiter can record a shortlist outcome for its opportunity.",
+"preconditions": ["A Company/Recruiter is authorized.", "A candidate has an Applied application associated with the Company's opportunity."],
+"action_or_input": "Record a shortlist outcome for the candidate.",
+"expected_result": "PCMS records the application as Shortlisted.",
+"test_type": "state-change"
+},
+{
+"test_id": "PCMS-AFR-048",
+"source_id": "PC-AFR-048 — Company rejection update",
+"purpose": "Verify an authorized Company/Recruiter can manage relevant application records and record supported rejection updates.",
+"preconditions": ["A Company/Recruiter is authorized.", "A relevant application is associated with its opportunity."],
+"action_or_input": "Record a supported rejection update for the application.",
+"expected_result": "PCMS records the update within the Company's scope without originating the external recruitment decision.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-049",
+"source_id": "PC-AFR-049 — Company offer extension",
+"purpose": "Verify an authorized Company/Recruiter can extend an offer to a selected candidate for its opportunity.",
+"preconditions": ["A Company/Recruiter is authorized.", "A selected candidate is associated with the Company's opportunity."],
+"action_or_input": "Extend a job offer to the candidate through PCMS.",
+"expected_result": "PCMS records the job offer as extended for that candidate.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-050",
+"source_id": "PC-AFR-050 — new job posting notification",
+"purpose": "Verify a new job posting triggers an automated notification event where required by the accepted notification scope.",
+"preconditions": ["The accepted notification scope requires notification for a new job posting."],
+"action_or_input": "Publish a new job posting.",
+"expected_result": "PCMS triggers the corresponding automated notification event.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-051",
+"source_id": "PC-AFR-051 — application submission notification",
+"purpose": "Verify application submission triggers an automated notification event.",
+"preconditions": ["A Student can submit an application to an eligible job posting."],
+"action_or_input": "Submit an application.",
+"expected_result": "PCMS triggers an automated application-submission notification event without assuming an unspecified recipient.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-052",
+"source_id": "PC-AFR-052 — shortlisting notification",
+"purpose": "Verify a shortlisting update triggers an automated notification event.",
+"preconditions": ["A supported shortlisting update can be recorded."],
+"action_or_input": "Record a shortlisting update.",
+"expected_result": "PCMS triggers an automated shortlisting notification event.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-053",
+"source_id": "PC-AFR-053 — rejection notification",
+"purpose": "Verify a rejection update triggers an automated notification event.",
+"preconditions": ["A supported rejection update can be recorded."],
+"action_or_input": "Record a rejection update.",
+"expected_result": "PCMS triggers an automated rejection notification event without assuming an unspecified recipient.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-054",
+"source_id": "PC-AFR-054 — interview schedule notification",
+"purpose": "Verify affected eligible or shortlisted Students are notified of recorded interview details.",
+"preconditions": ["An interview schedule applies to eligible or shortlisted Students."],
+"action_or_input": "Record valid interview details for the applicable Students.",
+"expected_result": "PCMS triggers an automated notification of the recorded interview details for each affected Student.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-055",
+"source_id": "PC-AFR-055 — job offer notification",
+"purpose": "Verify the Student is notified when a job offer is extended.",
+"preconditions": ["A job offer can be extended to a Student."],
+"action_or_input": "Extend a job offer to the Student.",
+"expected_result": "PCMS triggers an automated job-offer notification for that Student.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-056",
+"source_id": "PC-AFR-056 — announcement notification",
+"purpose": "Verify Students are notified about a new supported placement announcement.",
+"preconditions": ["An authorized TPO or Placement Chairman can publish a supported placement announcement."],
+"action_or_input": "Publish a supported placement announcement.",
+"expected_result": "PCMS triggers an automated notification to Students, including placement-drive announcements where applicable.",
+"test_type": "event-trigger"
+},
+{
+"test_id": "PCMS-AFR-057",
+"source_id": "PC-AFR-057 — email notification handoff",
+"purpose": "Verify supported automated placement notifications are handed off as system-generated emails.",
+"preconditions": ["A supported notification event has a resolved recipient."],
+"action_or_input": "Trigger the supported notification event.",
+"expected_result": "PCMS hands off the notification as a system-generated email; external email delivery infrastructure is outside the PCMS behavior represented by this test.",
+"test_type": "integration-boundary"
+},
+{
+"test_id": "PCMS-AFR-058",
+"source_id": "PC-AFR-058 — Alumni restricted data access",
+"purpose": "Verify Alumni receive only restricted placement-data access for supported mentorship and networking purposes.",
+"preconditions": ["An Alumni user is authenticated.", "Placement data is available for restricted Alumni access."],
+"action_or_input": "View placement data through the Alumni access function.",
+"expected_result": "PCMS exposes only the restricted placement-data set made available for mentorship and networking.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-059",
+"source_id": "PC-AFR-059 — Alumni read-only access",
+"purpose": "Verify Alumni placement-data access is read-only.",
+"preconditions": ["An Alumni user is authenticated.", "Placement data is available through restricted Alumni access."],
+"action_or_input": "Attempt to modify placement data through the Alumni access function.",
+"expected_result": "PCMS blocks the modification.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-060",
+"source_id": "PC-AFR-060 — Alumni active workflow restriction",
+"purpose": "Verify Alumni cannot participate in active placement workflows.",
+"preconditions": ["An Alumni user is authenticated."],
+"action_or_input": "Attempt to apply, shortlist, schedule an interview, issue an offer, and accept an offer as Alumni.",
+"expected_result": "PCMS prevents Alumni from participating in the attempted active placement workflows.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-061",
+"source_id": "PC-AFR-061 — role and access scope",
+"purpose": "Verify placement-data access and placement actions follow the user's role and defined access scope.",
+"preconditions": ["Representative users are available for the Student, TPO, Placement Chairman, Company/Recruiter, and Alumni roles."],
+"action_or_input": "Attempt representative placement-data views and actions under each role.",
+"expected_result": "PCMS permits or restricts each view and action according to that user's role and defined access scope.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-062",
+"source_id": "PC-AFR-062 — sensitive data view authorization",
+"purpose": "Verify only authorized stakeholders can view sensitive placement data.",
+"preconditions": ["Sensitive placement data is available.", "An authorized stakeholder and an unauthorized user are available."],
+"action_or_input": "Attempt to view the sensitive data as each user.",
+"expected_result": "PCMS allows the authorized stakeholder to view the data and prevents the unauthorized user from viewing it.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-063",
+"source_id": "PC-AFR-063 — sensitive data modification authorization",
+"purpose": "Verify only authorized stakeholders can modify sensitive placement data.",
+"preconditions": ["Sensitive placement data is available.", "An authorized stakeholder and an unauthorized user are available."],
+"action_or_input": "Attempt to modify the sensitive data as each user.",
+"expected_result": "PCMS allows the authorized stakeholder to modify the data and prevents the unauthorized user from modifying it.",
+"test_type": "authorization"
+},
+{
+"test_id": "PCMS-AFR-064",
+"source_id": "PC-AFR-064 — placement-data confidentiality",
+"purpose": "Verify role-based permissions protect placement-data confidentiality within the PCMS scope.",
+"preconditions": ["Sensitive placement data exists.", "Users with representative PCMS roles and access scopes are available."],
+"action_or_input": "Attempt to access sensitive placement data under the representative roles and scopes.",
+"expected_result": "Role-based permissions prevent sensitive placement data from being exposed beyond the accepted role scopes.",
+"test_type": "authorization"
+}
+]

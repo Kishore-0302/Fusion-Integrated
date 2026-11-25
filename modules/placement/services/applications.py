@@ -1,4 +1,7 @@
-"""All writes to an application (PC-WF-004, PC-WF-005).
+"""All writes to an application.
+
+Spec refs: BW-PC-01..04, CW-PC-01, CW-PC-02, CW-PC-04,
+           PC-UC-003, PC-BR-001, PC-BR-002, PC-BR-030.
 
 Raises domain errors, never DRF exceptions, so it stays callable from a task
 or a management command. Three checks must all pass:
@@ -13,6 +16,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
+from decimal import Decimal
 
 from django.db import transaction
 from django.utils import timezone
@@ -34,6 +38,17 @@ from modules.placement.services import facts as facts_service
 from modules.placement.services import notifications
 
 log = logging.getLogger("fusion.placement.applications")
+
+
+def _json_safe(value):
+    """Recursively convert Decimal instances to JSON-safe numbers (int or float)."""
+    if isinstance(value, Decimal):
+        return int(value) if value % 1 == 0 else float(value)
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    return value
 
 
 def actor_kind(actor, application=None) -> str:
@@ -214,6 +229,11 @@ def apply_to(*, posting_id: int, actor, cover_note: str = "",
     Eligibility is frozen onto the row, so the decision stays reproducible
     after a CPI or rule change. That snapshot is what an appeal is judged on.
     """
+    if getattr(actor, "active_role", None) == "alumni" or getattr(actor, "kind", None) == "alumni":
+        raise ConflictError(
+            "Alumni cannot participate in active placement workflows such as applying.",
+            code="alumni_workflow_prohibited")
+
     posting = (JobPosting.objects.select_related("company")
                .filter(pk=posting_id).first())
     if posting is None:
@@ -229,11 +249,11 @@ def apply_to(*, posting_id: int, actor, cover_note: str = "",
         raise ConflictError("You have already applied to this posting.",
                             code="already_applied")
 
-    snapshot = evaluate_for(posting=posting, user_id=actor.user_id, policy=policy)
+    snapshot = _json_safe(evaluate_for(posting=posting, user_id=actor.user_id, policy=policy))
 
     app = Application.objects.create(
         posting=posting, user_id=actor.user_id, status=sm.DRAFT,
-        cover_note=cover_note, resume_id=resume_id,
+        cover_note=cover_note,
         cpi_at_apply=snapshot.get("cpi"),
         semester_at_apply=snapshot.get("semester"),
         standing_declared_seq_at_apply=snapshot.get("declared_seq"),
@@ -273,7 +293,7 @@ def evaluate_for(*, posting: JobPosting, user_id: int,
             sector=posting.company.sector_kind))
 
     standing = f.get("_standing") or {}
-    return {
+    return _json_safe({
         "is_eligible": outcome.is_eligible and season.allowed,
         "failed": elig.failure_reasons(outcome),
         "error": outcome.error,
@@ -284,7 +304,7 @@ def evaluate_for(*, posting: JobPosting, user_id: int,
         "declared_seq": standing.get("declared_seq"),
         "standing": standing,
         "evaluated_at": timezone.now().isoformat(),
-    }
+    })
 
 
 #: A convenience, not a migration tool, and N queries per item.
@@ -339,3 +359,119 @@ def bulk_transition(*, application_ids: Sequence[int], to_status: str, actor,
              to_status, moved, len(outcomes) - moved,
              getattr(actor, "user_id", None))
     return outcomes
+
+
+def student_status_view(*, user_id: int, actor) -> dict:
+    """PC-AFR-010: Student-scoped status view combining applications,
+    interviews, offers, and placement-record information."""
+    is_staff = scoping.is_staff(actor)
+    is_self = getattr(actor, "user_id", None) == user_id
+    if not (is_staff or (is_self and actor.has_permission("placement_cell.application.view_self"))):
+        raise PermissionDeniedError("Permission denied to view status.")
+
+    apps = list(Application.objects.filter(user_id=user_id)
+                .select_related("posting", "posting__company")
+                .prefetch_related("transitions")
+                .order_by("-created_at"))
+
+    app_list = []
+    for app in apps:
+        transitions = [
+            {
+                "from_status": tr.from_status,
+                "to_status": tr.to_status,
+                "at": tr.at.isoformat(),
+                "reason": tr.reason if is_staff else "",
+                "actor_label": tr.actor_label if is_staff else "",
+            }
+            for tr in app.transitions.all()
+        ]
+        app_list.append({
+            "id": app.pk,
+            "posting_id": app.posting_id,
+            "posting_title": app.posting.title,
+            "company_name": app.posting.company.name,
+            "status": app.status,
+            "applied_at": app.applied_at.isoformat() if app.applied_at else None,
+            "created_at": app.created_at.isoformat(),
+            "transitions": transitions,
+        })
+
+    from modules.placement.models import Offer, PlacementRecord, RoundParticipation
+
+    parts = list(RoundParticipation.objects.filter(application__user_id=user_id)
+                 .select_related("round", "round__posting", "round__posting__company")
+                 .order_by("round__starts_at"))
+    interviews = [
+        {
+            "round_id": p.round_id,
+            "application_id": p.application_id,
+            "company_name": p.round.posting.company.name,
+            "posting_title": p.round.posting.title,
+            "round_seq": p.round.seq,
+            "round_kind": p.round.kind,
+            "mode": p.round.mode,
+            "starts_at": p.round.starts_at.isoformat() if p.round.starts_at else None,
+            "ends_at": p.round.ends_at.isoformat() if p.round.ends_at else None,
+            "venue": p.round.venue,
+            "meeting_url": p.round.meeting_url,
+            "outcome": p.outcome,
+            "score": str(p.score) if p.score is not None else None,
+            "remarks": p.remarks if is_staff else "",
+        }
+        for p in parts
+    ]
+
+    offers = list(Offer.objects.filter(user_id=user_id)
+                  .select_related("posting", "posting__company")
+                  .order_by("-created_at"))
+    offer_list = [
+        {
+            "id": o.pk,
+            "application_id": o.application_id,
+            "company_name": o.posting.company.name,
+            "posting_title": o.posting.title,
+            "ctc_lpa": str(o.ctc_lpa) if o.ctc_lpa is not None else None,
+            "status": o.status,
+            "issued_at": o.created_at.isoformat(),
+            "respond_by": o.respond_by.isoformat() if o.respond_by else None,
+        }
+        for o in offers
+    ]
+
+    records = list(PlacementRecord.objects.filter(user_id=user_id)
+                   .select_related("company", "policy")
+                   .order_by("-created_at"))
+    record_list = [
+        {
+            "id": r.pk,
+            "season": r.policy.season,
+            "company_name": r.company.name,
+            "source": r.source,
+            "kind": r.kind,
+            "ctc_lpa": str(r.ctc_lpa) if r.ctc_lpa is not None else None,
+            "is_active": r.is_active,
+            "has_offer_letter": r.offer_letter_id is not None,
+            "not_joining_declared": r.not_joining_declared_at is not None,
+            "not_joining_reason": r.not_joining_reason if (is_self or is_staff) else "",
+        }
+        for r in records
+    ]
+
+    active_record = next((r for r in records if r.is_active), None)
+
+    return {
+        "user_id": user_id,
+        "is_placed": active_record is not None,
+        "active_placement": {
+            "record_id": active_record.pk,
+            "company_name": active_record.company.name,
+            "ctc_lpa": str(active_record.ctc_lpa) if active_record.ctc_lpa is not None else None,
+            "source": active_record.source,
+            "kind": active_record.kind,
+        } if active_record else None,
+        "applications": app_list,
+        "interviews": interviews,
+        "offers": offer_list,
+        "placement_records": record_list,
+    }

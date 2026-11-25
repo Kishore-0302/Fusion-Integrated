@@ -53,7 +53,7 @@ class Application(TimeStampedModel, UserScopedModel):
 
 
 class ApplicationTransition(models.Model):
-    """Append-only audit of every status change (PC-BR-008)."""
+    """Append-only audit of every status change (PC-AFR-009)."""
 
     application = models.ForeignKey(Application, on_delete=models.CASCADE,
                                     related_name="transitions")

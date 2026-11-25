@@ -43,6 +43,9 @@
           "placement_cell.job_posting.view",
           "placement_cell.report.view"
         ],
+        "alumni": [
+          "placement_cell.job_posting.view"
+        ],
         "placement_chairman": [
           "placement_cell.academic_directory.view",
           "placement_cell.announcement.publish",
@@ -84,6 +87,7 @@
       },
       "module_grants": [
         "Dean Academic",
+        "alumni",
         "placement_chairman",
         "placement_coordinator",
         "placement_officer",

@@ -684,7 +684,7 @@ class BulkResultSerializer(serializers.Serializer):
     results = BulkOutcomeSerializer(many=True)
 
 
-# -- Audit trail (PC-BR-008) ---------------------------------------------------
+# -- Audit trail (PC-AFR-009, PC-UC-004) ---------------------------------------
 class TransitionEntrySerializer(serializers.Serializer):
     """`reason` and the actor ids are absent for a non-staff reader — see
     api/audit.py for why."""
@@ -713,3 +713,105 @@ class StudentConductIncidentSerializer(serializers.ModelSerializer):
         model = ConductIncident
         fields = ("id", "kind", "note", "waived", "waived_reason", "created_at")
         read_only_fields = fields
+
+
+# -- Student status view & TPO reporting (AFR-010, AFR-029, AFR-030, AFR-033..036) --
+class StudentStatusSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    is_placed = serializers.BooleanField()
+    active_placement = serializers.DictField(allow_null=True)
+    applications = serializers.ListField(child=serializers.DictField())
+    interviews = serializers.ListField(child=serializers.DictField())
+    offers = serializers.ListField(child=serializers.DictField())
+    placement_records = serializers.ListField(child=serializers.DictField())
+
+
+class InterviewProgressRoundSerializer(serializers.Serializer):
+    round_id = serializers.IntegerField()
+    posting_id = serializers.IntegerField()
+    posting_title = serializers.CharField()
+    company_name = serializers.CharField()
+    season = serializers.CharField()
+    seq = serializers.IntegerField()
+    kind = serializers.CharField()
+    mode = serializers.CharField()
+    starts_at = serializers.CharField(allow_null=True)
+    ends_at = serializers.CharField(allow_null=True)
+    venue = serializers.CharField(allow_blank=True)
+    meeting_url = serializers.CharField(allow_blank=True)
+    capacity = serializers.IntegerField(allow_null=True)
+    stats = serializers.DictField()
+    candidates = serializers.ListField(child=serializers.DictField())
+
+
+class InterviewProgressListSerializer(serializers.Serializer):
+    results = InterviewProgressRoundSerializer(many=True)
+
+
+class PlacementOutcomesSerializer(serializers.Serializer):
+    season = serializers.CharField()
+    total_records = serializers.IntegerField()
+    active_placements = serializers.IntegerField()
+    on_campus_count = serializers.IntegerField()
+    off_campus_count = serializers.IntegerField()
+    fte_count = serializers.IntegerField()
+    internship_count = serializers.IntegerField()
+    with_offer_letter_count = serializers.IntegerField()
+    not_joining_count = serializers.IntegerField()
+    results = serializers.ListField(child=serializers.DictField())
+
+
+class SuccessRateReportSerializer(serializers.Serializer):
+    season = serializers.CharField()
+    available = serializers.BooleanField()
+    registered = serializers.IntegerField(required=False)
+    placed = serializers.IntegerField(required=False)
+    success_rate = serializers.FloatField(required=False)
+    placement_rate = serializers.FloatField(required=False)
+    debarred = serializers.IntegerField(required=False)
+    reason = serializers.CharField(required=False)
+
+
+class CompanyTrendReportSerializer(serializers.Serializer):
+    season = serializers.CharField()
+    companies_count = serializers.IntegerField()
+    company_names = serializers.ListField(child=serializers.CharField())
+    new_companies_count = serializers.IntegerField()
+    new_companies = serializers.ListField(child=serializers.CharField())
+    repeat_companies_count = serializers.IntegerField()
+    repeat_companies = serializers.ListField(child=serializers.CharField())
+    postings_count = serializers.IntegerField()
+
+
+class CompanyTrendListSerializer(serializers.Serializer):
+    results = CompanyTrendReportSerializer(many=True)
+
+
+class SalaryDistributionReportSerializer(serializers.Serializer):
+    season = serializers.CharField()
+    available = serializers.BooleanField()
+    total_placed = serializers.IntegerField(required=False)
+    min_ctc = serializers.CharField(allow_null=True, required=False)
+    max_ctc = serializers.CharField(allow_null=True, required=False)
+    mean_ctc = serializers.CharField(allow_null=True, required=False)
+    median_ctc = serializers.CharField(allow_null=True, required=False)
+    brackets = serializers.ListField(child=serializers.DictField(), required=False)
+    distribution = serializers.DictField(required=False)
+    reason = serializers.CharField(required=False)
+
+
+class EmploymentTrendReportSerializer(serializers.Serializer):
+    season = serializers.CharField()
+    registered = serializers.IntegerField()
+    placed = serializers.IntegerField()
+    placement_rate = serializers.FloatField()
+    success_rate = serializers.FloatField()
+    total_offers = serializers.IntegerField()
+    companies_participated = serializers.IntegerField()
+    median_ctc = serializers.CharField(allow_null=True)
+    mean_ctc = serializers.CharField(allow_null=True)
+    max_ctc = serializers.CharField(allow_null=True)
+
+
+class EmploymentTrendListSerializer(serializers.Serializer):
+    results = EmploymentTrendReportSerializer(many=True)

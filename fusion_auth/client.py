@@ -74,6 +74,7 @@ class UserRef:
     #: Maintained on the ERP portal's profile page. Read here, never written.
     resume_link: str = ""
     profile_completed: bool = False
+    skills: tuple[str, ...] = ()
     extra: dict[str, Any] = field(default_factory=dict)
 
 
@@ -224,6 +225,10 @@ class IamClient:
         uid = r.get("user_id") or r.get("id")
         if uid is None:
             return None
+        raw_skills = r.get("skills") or ()
+        if isinstance(raw_skills, str):
+            raw_skills = [s.strip() for s in raw_skills.split(",") if s.strip()]
+        skills = tuple(str(s).strip() for s in raw_skills if str(s).strip())
         return UserRef(
             user_id=int(uid),
             username=r.get("username", ""),
@@ -237,11 +242,12 @@ class IamClient:
             is_active=bool(r.get("is_active", True)),
             resume_link=r.get("resume_link", "") or "",
             profile_completed=bool(r.get("profile_completed", False)),
+            skills=skills,
             extra={k: v for k, v in r.items()
                    if k not in {"user_id", "id", "username", "display_name", "name",
                                 "kind", "email", "department", "programme",
                                 "discipline", "batch_year", "is_active",
-                                "resume_link", "profile_completed"}},
+                                "resume_link", "profile_completed", "skills"}},
         )
 
     # -- academic standing (declared CPI) ---------------------------------

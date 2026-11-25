@@ -10,13 +10,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='profiledocument',
-            name='profile',
-        ),
         migrations.RemoveIndex(
             model_name='profiledocument',
             name='document_profile_idx',
+        ),
+        migrations.RemoveField(
+            model_name='profiledocument',
+            name='profile',
         ),
         migrations.RemoveField(
             model_name='application',

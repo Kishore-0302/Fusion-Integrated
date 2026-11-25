@@ -14,20 +14,21 @@ from typing import Any
 
 # PC-BR-004's closed vocabulary: an unknown field denies rather than being ignored.
 FIELDS = {
-    "cpi", "earned_credits", "active_backlogs", "semester",   # IAM projection
-    "programme", "discipline", "batch_year",                  # IAM directory
-    "is_placed", "is_registered", "offer_count",              # this module
-    "profile_complete",                                       # the ERP portal
+    "cpi", "cgpa", "earned_credits", "active_backlogs", "semester",   # IAM projection
+    "programme", "discipline", "branch", "batch_year", "year",        # IAM directory
+    "is_placed", "is_registered", "offer_count",                      # this module
+    "profile_complete",                                               # the ERP portal
+    "skills",                                                         # authorized student skills
 }
 
-# List-valued facts, comparable only with the set operators. None today.
-LIST_FIELDS: set[str] = set()
+# List-valued facts, comparable only with the set operators (PC-AFR-022).
+LIST_FIELDS: set[str] = {"skills"}
 LIST_OPS = {"has_all", "has_any", "has_none"}
 
 # Each scalar field's literal type, so a rule is checked when it is written.
-NUMERIC_FIELDS = {"cpi", "earned_credits", "active_backlogs", "semester",
-                  "batch_year", "offer_count"}
-TEXT_FIELDS = {"programme", "discipline"}
+NUMERIC_FIELDS = {"cpi", "cgpa", "earned_credits", "active_backlogs", "semester",
+                  "batch_year", "year", "offer_count"}
+TEXT_FIELDS = {"programme", "discipline", "branch"}
 FLAG_FIELDS = {"is_placed", "is_registered", "profile_complete"}
 
 EQUALITY_OPS = {"eq", "ne"}
@@ -168,7 +169,15 @@ def evaluate(rule: dict | None, facts: dict, _depth: int = 0) -> Outcome:
         if field not in FIELDS:
             return Outcome(False, [RuleOutcome(field, op, expected, None, False,
                                                "unknown_field")], "unknown_field")
-        out = _compare(op, field, expected, facts.get(field))
+        actual = facts.get(field)
+        if actual is None:
+            if field == "cgpa":
+                actual = facts.get("cpi")
+            elif field == "branch":
+                actual = facts.get("discipline")
+            elif field == "year":
+                actual = facts.get("batch_year")
+        out = _compare(op, field, expected, actual)
         return Outcome(out.passed, [out])
 
     except Exception:                                          # noqa: BLE001
@@ -177,12 +186,12 @@ def evaluate(rule: dict | None, facts: dict, _depth: int = 0) -> Outcome:
 
 # Every denial carries the actual value and the required one, not just "no".
 LABELS = {
-    "cpi": "CPI", "earned_credits": "earned credits",
+    "cpi": "CPI", "cgpa": "CGPA", "earned_credits": "earned credits",
     "active_backlogs": "active backlogs", "semester": "semester",
-    "programme": "programme", "discipline": "discipline",
-    "batch_year": "batch year", "is_placed": "placement status",
+    "programme": "programme", "discipline": "discipline", "branch": "branch",
+    "batch_year": "batch year", "year": "year", "is_placed": "placement status",
     "is_registered": "season registration", "offer_count": "offers held",
-    "profile_complete": "profile completeness",
+    "profile_complete": "profile completeness", "skills": "skills",
 }
 
 _OP_PHRASE = {
@@ -196,13 +205,23 @@ def describe(outcome: RuleOutcome) -> str:
     if outcome.passed:
         return f"{label} — met"
     if outcome.reason == "missing_fact":
-        if outcome.field in ("cpi", "earned_credits", "active_backlogs", "semester"):
+        if outcome.field in ("cpi", "cgpa", "earned_credits", "active_backlogs", "semester"):
             return ("No declared result yet, so your academic standing cannot be "
                     "checked. Eligibility opens once your result is declared.")
         return f"{label} is not recorded on your profile yet."
     if outcome.op in ("in", "not_in"):
         allowed = ", ".join(str(x) for x in (outcome.required or []))
         return f"{label} is {outcome.actual} — this posting is open to {allowed}."
+    if outcome.op in LIST_OPS:
+        req = ", ".join(str(x) for x in (outcome.required or []))
+        if outcome.op == "has_all":
+            missing = outcome.reason.split(":", 1)[1] if ":" in outcome.reason else req
+            return f"{label} missing required skill(s): {missing}."
+        if outcome.op == "has_any":
+            return f"{label} requires at least one of: {req}."
+        if outcome.op == "has_none":
+            disallowed = outcome.reason.split(":", 1)[1] if ":" in outcome.reason else req
+            return f"{label} contains disallowed skill(s): {disallowed}."
     phrase = _OP_PHRASE.get(outcome.op, outcome.op)
     return f"{label} is {outcome.actual} — this posting needs {phrase} {outcome.required}."
 

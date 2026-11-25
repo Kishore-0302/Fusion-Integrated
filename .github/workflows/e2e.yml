@@ -50,6 +50,29 @@ jobs:
           users=$(psql -d fusionlab -tAc "select count(*) from auth_user")
           echo "restored $users accounts"
           test "$users" -gt 0
+          # Ensure tables expected by the IAM sync projection exist in the restored dump
+          psql -d fusionlab -c "
+            CREATE TABLE IF NOT EXISTS examination_student_grades (
+              id serial PRIMARY KEY,
+              roll_no varchar(50),
+              course_id_id integer,
+              grade varchar(10),
+              semester integer,
+              semester_type varchar(20)
+            );
+            CREATE TABLE IF NOT EXISTS programme_curriculum_studentbatchupload (
+              id serial PRIMARY KEY,
+              user_id integer,
+              resume_link varchar(255),
+              profile_completed boolean
+            );
+            CREATE TABLE IF NOT EXISTS programme_curriculum_phdstudentbatchupload (
+              id serial PRIMARY KEY,
+              user_account_id integer,
+              resume_link varchar(255),
+              profile_completed boolean
+            );
+          "
 
       - name: IAM
         working-directory: iam

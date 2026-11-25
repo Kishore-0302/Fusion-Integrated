@@ -1,4 +1,4 @@
-"""The application state machine (PC-WF-001, PC-WF-004..007).
+"""The application state machine (CW-PC-04, BW-PC-04..08, CW-PC-02, CW-PC-03).
 
 A declarative table of legal moves, so an illegal transition is impossible to
 express rather than merely rejected, and "who may do this?" has exactly one
@@ -77,14 +77,14 @@ TRANSITIONS: tuple[Transition, ...] = (
                frozenset({STUDENT}),
                ("window_open", "profile_complete", "is_eligible", "may_apply")),
 
-    # -- review and shortlisting (PC-WF-005) ------------------------------
+    # -- review and shortlisting (BW-PC-04, CW-PC-02, PC-UC-016, PC-BR-030) ------
     _review(SUBMITTED, UNDER_REVIEW),
     _review(SUBMITTED, REJECTED, "has_reason"),
     _review(UNDER_REVIEW, SHORTLISTED),
     _review(UNDER_REVIEW, REJECTED, "has_reason"),
     _review(SHORTLISTED, REJECTED, "has_reason"),
 
-    # -- interviews (PC-WF-006) -------------------------------------------
+    # -- interviews (BW-PC-05, BW-PC-06, CW-PC-02, PC-UC-009, PC-UC-021) ---------
     Transition(SHORTLISTED, INTERVIEW_SCHEDULED,
                "placement_cell.interview.schedule",
                frozenset({STAFF, RECRUITER}), ("has_scheduled_round",)),
@@ -92,7 +92,7 @@ TRANSITIONS: tuple[Transition, ...] = (
     _review(INTERVIEW_SCHEDULED, REJECTED, "has_reason"),
     _review(INTERVIEW_SCHEDULED, SHORTLISTED),        # round cancelled, back a step
 
-    # -- offers (PC-WF-007) -----------------------------------------------
+    # -- offers (BW-PC-07, BW-PC-08, CW-PC-03, PC-UC-005, PC-UC-022) -------------
     Transition(SELECTED, OFFER_ISSUED, "placement_cell.offer.issue",
                frozenset({STAFF, RECRUITER}), ("company_authorized",)),
     Transition(SHORTLISTED, OFFER_ISSUED, "placement_cell.offer.issue",
@@ -108,7 +108,7 @@ TRANSITIONS: tuple[Transition, ...] = (
     Transition(OFFER_ISSUED, OFFER_EXPIRED, "placement_cell.offer.expire",
                frozenset({SYSTEM}), ("offer_window_closed",)),
 
-    # Staff only — a company revoking an offer goes through the TPO (PC-BR-029).
+    # Staff only — a company revoking an offer goes through the TPO (PC-BR-015 policy boundary).
     Transition(OFFER_ISSUED, REJECTED, "placement_cell.offer.revoke",
                frozenset({STAFF}), ("has_reason",)),
 

@@ -30,6 +30,7 @@ from modules.placement.authentication import (
     RecruiterAuthentication,
 )
 from modules.placement.models import (
+    InterviewRound,
     PlacementPolicy,
     RecruiterAccount,
 )
@@ -37,6 +38,7 @@ from modules.placement.selectors import scoping
 from modules.placement.services import announcements as announcement_service
 from modules.placement.services import applications as application_service
 from modules.placement.services import candidates
+from modules.placement.services import clearance as clearance_service
 from modules.placement.services import companies as company_service
 from modules.placement.services import interviews as interview_service
 from modules.placement.services import offers as offer_service
@@ -301,6 +303,28 @@ class ApplyView(_Scoped, APIView):
                         status=status.HTTP_201_CREATED)
 
 
+@extend_schema(responses=s.StudentStatusSerializer)
+class StudentStatusView(_Scoped, APIView):
+    """PC-AFR-010: Student-scoped status view combining applications,
+    interviews, offers, and placement-record information."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_SELF)]
+
+    def get(self, request):
+        actor = _actor(request)
+        target_user_id = actor.user_id
+        requested_id = request.query_params.get("user_id")
+        if requested_id and scoping.is_staff(actor):
+            try:
+                target_user_id = int(requested_id)
+            except (ValueError, TypeError) as exc:
+                raise BadRequestError("user_id must be a number.",
+                                      code="invalid_filter") from exc
+        status_data = application_service.student_status_view(
+            user_id=target_user_id, actor=actor)
+        return Response(status_data)
+
+
 # -- Profile -------------------------------------------------------------------
 @extend_schema(responses=s.CandidateSerializer)
 class MyResumeView(_Scoped, APIView):
@@ -447,6 +471,24 @@ class RoundOutcomeView(_Scoped, APIView):
         return Response(s.RoundParticipationSerializer(participation).data)
 
 
+@extend_schema(responses=s.InterviewProgressListSerializer)
+class InterviewProgressView(_Scoped, APIView):
+    """PC-AFR-029: TPO-scoped view for tracking interview progress and status."""
+
+    permission_classes = [
+        MODULE, HasPermission(P_VIEW_REPORTS, "placement_cell.interview.schedule")]
+    queryset = InterviewRound.objects.none()
+
+    def get(self, request):
+        actor = _actor(request)
+        posting_id = _int_param(request.query_params, "posting_id") or _int_param(
+            request.query_params, "posting")
+        season = request.query_params.get("season")
+        data = interview_service.interview_progress_view(
+            actor=actor, posting_id=posting_id, season=season)
+        return Response({"results": data})
+
+
 # -- Offers --------------------------------------------------------------------
 class OfferListView(_Scoped, generics.ListAPIView):
     serializer_class = s.OfferSerializer
@@ -532,23 +574,92 @@ class SeasonListView(_Scoped, generics.ListAPIView):
         return PlacementPolicy.objects.order_by("-is_active", "-season")
 
 
-# -- Statistics ----------------------------------------------------------------
+# -- Statistics & Reports (PC-UC-011, PC-UC-012, PC-AFR-030, PC-AFR-033..036) ---
 @extend_schema(responses=s.StaffStatsSerializer,
                description="Staff receive StaffStats; everyone else receives "
                            "the anonymised StudentStats shape (PC-BR-016).")
 class StatsView(_Scoped, APIView):
     """Anonymised aggregates for a student (PC-BR-016), operational figures
-    for staff (PC-UC-011/012)."""
+    for staff (PC-UC-011/012), and named analytical reports (PC-AFR-033..036)."""
 
     permission_classes = [MODULE]
 
     def get(self, request):
         actor = _actor(request)
         season = request.query_params.get("season") or _current_season()
-        if getattr(actor, "kind", None) != "recruiter" and \
-                actor.has_permission(P_VIEW_REPORTS):
+        report = request.query_params.get("report")
+        is_staff = (getattr(actor, "kind", None) != "recruiter" and
+                    actor.has_permission(P_VIEW_REPORTS))
+
+        if is_staff:
+            if report == "success_rate":
+                return Response(stats_service.placement_success_rate(season=season))
+            if report in ("company_trends", "participation_trends"):
+                return Response(stats_service.company_participation_trends())
+            if report == "salary_distribution":
+                return Response(stats_service.salary_distribution(season=season))
+            if report == "employment_trends":
+                return Response(stats_service.employment_trends())
             return Response(stats_service.staff_view(season=season))
+
         return Response(stats_service.student_view(season=season))
+
+
+@extend_schema(responses=s.PlacementOutcomesSerializer)
+class PlacementOutcomesView(_Scoped, APIView):
+    """PC-AFR-030: TPO-scoped view for tracking placement outcomes and final status."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_REPORTS, P_MANAGE_COMPANIES)]
+
+    def get(self, request):
+        actor = _actor(request)
+        season = request.query_params.get("season")
+        data = clearance_service.placement_outcomes_view(actor=actor, season=season)
+        return Response(data)
+
+
+@extend_schema(responses=s.SuccessRateReportSerializer)
+class ReportSuccessRateView(_Scoped, APIView):
+    """PC-AFR-033: TPO report for placement success rate."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_REPORTS)]
+
+    def get(self, request):
+        season = request.query_params.get("season") or _current_season()
+        return Response(stats_service.placement_success_rate(season=season))
+
+
+@extend_schema(responses=s.CompanyTrendListSerializer)
+class ReportParticipationTrendsView(_Scoped, APIView):
+    """PC-AFR-034: TPO report for company participation trends across seasons."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_REPORTS)]
+    queryset = PlacementPolicy.objects.none()
+
+    def get(self, request):
+        return Response({"results": stats_service.company_participation_trends()})
+
+
+@extend_schema(responses=s.SalaryDistributionReportSerializer)
+class ReportSalaryDistributionView(_Scoped, APIView):
+    """PC-AFR-035: TPO report for salary package distribution."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_REPORTS)]
+
+    def get(self, request):
+        season = request.query_params.get("season") or _current_season()
+        return Response(stats_service.salary_distribution(season=season))
+
+
+@extend_schema(responses=s.EmploymentTrendListSerializer)
+class ReportEmploymentTrendsView(_Scoped, APIView):
+    """PC-AFR-036: TPO report for employment trends across seasons."""
+
+    permission_classes = [MODULE, HasPermission(P_VIEW_REPORTS)]
+    queryset = PlacementPolicy.objects.none()
+
+    def get(self, request):
+        return Response({"results": stats_service.employment_trends()})
 
 
 def _current_season() -> str:

@@ -205,3 +205,56 @@ def test_api_extends_a_published_deadline(api, company, staff):
     assert resp.status_code == 200
     posting.refresh_from_db()
     assert posting.closes_at == later
+
+
+def test_a_posting_without_a_description_cannot_be_published(company, staff):
+    """PC-BR-003: role description is required."""
+    posting = JobPosting.objects.create(
+        company=company, title="SDE-1", placement_year="2026-27",
+        description="",  # empty
+        status="draft",
+        closes_at=timezone.now() + timedelta(days=7),
+        eligibility_rule={"gte": ["cpi", 7.0]},
+        created_by_user_id=9,
+    )
+    code = _code(lambda: postings.publish(posting_id=posting.pk, actor=staff))
+    assert code == "incomplete_posting"
+
+
+def test_company_submits_then_tpo_publishes(company, staff):
+    """BW-PC-03: Company submits opportunity, TPO publishes it."""
+    from types import SimpleNamespace
+
+    from modules.placement.models import RecruiterAccount
+
+    acct = RecruiterAccount.objects.create(
+        company=company,
+        email="recruiter@acme.example.com",
+        full_name="Recruiter",
+    )
+    recruiter_actor = SimpleNamespace(
+        user_id=None,
+        username="recruiter",
+        display_name="Recruiter",
+        kind="recruiter",
+        active_role=None,
+        roles=(),
+        permissions=frozenset((MANAGE,)),
+        modules=(),
+        is_authenticated=True,
+        is_anonymous=False,
+        account_id=acct.pk,
+    )
+    draft = postings.create(
+        company_id=company.pk,
+        placement_year="2026-27",
+        actor=recruiter_actor,
+        title="Recruiter Draft",
+        description="Role details here.",
+        eligibility_rule={"gte": ["cpi", 7.0]},
+        closes_at=timezone.now() + timedelta(days=7),
+    )
+    assert draft.status == "draft"
+    published = postings.publish(posting_id=draft.pk, actor=staff)
+    assert published.status == "published"
+

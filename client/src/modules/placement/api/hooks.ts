@@ -343,7 +343,7 @@ export function useCsvExport() {
   });
 }
 
-// -- Audit trail (PC-BR-008) ---------------------------------------------------
+// -- Audit trail (PC-AFR-009) --------------------------------------------------
 export interface TransitionEntry {
   from_status: string;
   to_status: string;

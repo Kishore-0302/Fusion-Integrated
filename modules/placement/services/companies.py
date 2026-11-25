@@ -1,7 +1,10 @@
-"""Company registration and authorization (PC-UC-014, PC-WF-002, PC-BR-007)."""
+"""Company registration and authorization.
+
+Spec refs: PC-UC-014, PC-BR-007, PC-AFR-044, PC-AFR-045, PC-AFR-046.
+"""
 from __future__ import annotations
 
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, OperationalError, transaction
 from django.utils import timezone
 from django.utils.text import slugify
 
@@ -23,9 +26,12 @@ def _unique_slug(name: str) -> str:
     return slug
 
 
-def _is_slug_clash(exc: IntegrityError) -> bool:
-    diag = getattr(exc.__cause__, "diag", None)
-    return getattr(diag, "constraint_name", None) == f"{Company._meta.db_table}_slug_key"
+def _is_slug_clash(exc: Exception) -> bool:
+    diag = getattr(getattr(exc, "__cause__", None), "diag", None)
+    if getattr(diag, "constraint_name", None) == f"{Company._meta.db_table}_slug_key":
+        return True
+    msg = str(exc).lower()
+    return "placement_company.slug" in msg or ("slug" in msg and "unique" in msg) or "locked" in msg
 
 
 def _create_with_unique_slug(**fields) -> Company:
@@ -34,7 +40,7 @@ def _create_with_unique_slug(**fields) -> Company:
         try:
             with transaction.atomic():
                 return Company.objects.create(slug=_unique_slug(fields["name"]), **fields)
-        except IntegrityError as exc:
+        except (IntegrityError, OperationalError) as exc:
             if not _is_slug_clash(exc):
                 raise
     raise ConflictError(

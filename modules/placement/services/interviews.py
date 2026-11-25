@@ -1,4 +1,7 @@
-"""Interview scheduling and tracking (PC-UC-009, PC-WF-006, PC-BR-011/012)."""
+"""Interview scheduling and tracking.
+
+Spec refs: PC-UC-009, PC-UC-021, BW-PC-05, BW-PC-06, CW-PC-02, PC-BR-011/012.
+"""
 from __future__ import annotations
 
 from django.db import transaction
@@ -130,3 +133,69 @@ def record_outcome(*, round_id: int, application_id: int, outcome: str,
     participation.remarks = remarks
     participation.save(update_fields=["outcome", "score", "remarks", "updated_at"])
     return participation
+
+
+def interview_progress_view(*, actor, posting_id: int | None = None,
+                            season: str | None = None) -> list[dict]:
+    """PC-AFR-029: TPO-scoped view for tracking interview progress and status."""
+    require(actor, "placement_cell.report.view", P_SCHEDULE, allow_recruiter=True)
+    is_recruiter = getattr(actor, "kind", None) == "recruiter"
+    qs = (InterviewRound.objects
+          .select_related("posting", "posting__company")
+          .prefetch_related("participants"))
+
+    if is_recruiter:
+        qs = qs.filter(posting__company_id=actor.company_id)
+    if posting_id:
+        qs = qs.filter(posting_id=posting_id)
+    if season:
+        qs = qs.filter(posting__placement_year=season)
+
+    rounds = list(qs.order_by("-posting__created_at", "seq"))
+    results = []
+    for r in rounds:
+        parts = list(r.participants.all())
+        total = len(parts)
+        pending = sum(1 for p in parts if p.outcome == "pending")
+        passed = sum(1 for p in parts if p.outcome == "passed")
+        failed = sum(1 for p in parts if p.outcome == "failed")
+        attended = sum(1 for p in parts if p.outcome in ("attended", "passed", "failed"))
+        absent = sum(1 for p in parts if p.outcome == "absent")
+
+        candidates = [
+            {
+                "participation_id": p.pk,
+                "application_id": p.application_id,
+                "outcome": p.outcome,
+                "score": str(p.score) if p.score is not None else None,
+                "remarks": p.remarks,
+                "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+            }
+            for p in parts
+        ]
+
+        results.append({
+            "round_id": r.pk,
+            "posting_id": r.posting_id,
+            "posting_title": r.posting.title,
+            "company_name": r.posting.company.name,
+            "season": r.posting.placement_year,
+            "seq": r.seq,
+            "kind": r.kind,
+            "mode": r.mode,
+            "starts_at": r.starts_at.isoformat() if r.starts_at else None,
+            "ends_at": r.ends_at.isoformat() if r.ends_at else None,
+            "venue": r.venue,
+            "meeting_url": r.meeting_url,
+            "capacity": r.capacity,
+            "stats": {
+                "total_candidates": total,
+                "attended_candidates": attended,
+                "pending_candidates": pending,
+                "passed_candidates": passed,
+                "failed_candidates": failed,
+                "absent_candidates": absent,
+            },
+            "candidates": candidates,
+        })
+    return results

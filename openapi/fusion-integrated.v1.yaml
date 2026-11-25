@@ -352,6 +352,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkResult'
           description: ''
+  /api/v1/placement/applications/status:
+    get:
+      operationId: v1_placement_applications_status_retrieve
+      description: |-
+        PC-AFR-010: Student-scoped status view combining applications,
+        interviews, offers, and placement-record information.
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentStatus'
+          description: ''
   /api/v1/placement/companies:
     get:
       operationId: v1_placement_companies_list
@@ -734,6 +752,23 @@ paths:
           description: ''
         '403':
           description: Staff only; never a recruiter.
+  /api/v1/placement/interviews/progress:
+    get:
+      operationId: v1_placement_interviews_progress_retrieve
+      description: 'PC-AFR-029: TPO-scoped view for tracking interview progress and
+        status.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterviewProgressList'
+          description: ''
   /api/v1/placement/interviews/rounds:
     get:
       operationId: v1_placement_interviews_rounds_list
@@ -1332,6 +1367,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/PlacementRecordDetail'
           description: ''
+  /api/v1/placement/records/outcomes:
+    get:
+      operationId: v1_placement_records_outcomes_retrieve
+      description: 'PC-AFR-030: TPO-scoped view for tracking placement outcomes and
+        final status.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlacementOutcomes'
+          description: ''
   /api/v1/placement/records/outstanding:
     get:
       operationId: v1_placement_records_outstanding_list
@@ -1604,6 +1656,71 @@ paths:
               schema:
                 $ref: '#/components/schemas/RegistrationTerms'
           description: ''
+  /api/v1/placement/reports/employment-trends:
+    get:
+      operationId: v1_placement_reports_employment_trends_retrieve
+      description: 'PC-AFR-036: TPO report for employment trends across seasons.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmploymentTrendList'
+          description: ''
+  /api/v1/placement/reports/participation-trends:
+    get:
+      operationId: v1_placement_reports_participation_trends_retrieve
+      description: 'PC-AFR-034: TPO report for company participation trends across
+        seasons.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyTrendList'
+          description: ''
+  /api/v1/placement/reports/salary-distribution:
+    get:
+      operationId: v1_placement_reports_salary_distribution_retrieve
+      description: 'PC-AFR-035: TPO report for salary package distribution.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalaryDistributionReport'
+          description: ''
+  /api/v1/placement/reports/success-rate:
+    get:
+      operationId: v1_placement_reports_success_rate_retrieve
+      description: 'PC-AFR-033: TPO report for placement success rate.'
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessRateReport'
+          description: ''
   /api/v1/placement/seasons:
     get:
       operationId: v1_placement_seasons_list
@@ -1643,6 +1760,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StaffStats'
+          description: ''
+  /api/v1/placement/student/status:
+    get:
+      operationId: v1_placement_student_status_retrieve
+      description: |-
+        PC-AFR-010: Student-scoped status view combining applications,
+        interviews, offers, and placement-record information.
+      tags:
+      - v1
+      security:
+      - recruiterSession: []
+      - iamSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentStatus'
           description: ''
   /api/v1/placement/students/cpi:
     get:
@@ -2262,6 +2397,49 @@ components:
         * `prospect` - Prospect
         * `active` - Active
         * `blacklisted` - Blacklisted
+    CompanyTrendList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompanyTrendReport'
+      required:
+      - results
+    CompanyTrendReport:
+      type: object
+      properties:
+        season:
+          type: string
+        companies_count:
+          type: integer
+        company_names:
+          type: array
+          items:
+            type: string
+        new_companies_count:
+          type: integer
+        new_companies:
+          type: array
+          items:
+            type: string
+        repeat_companies_count:
+          type: integer
+        repeat_companies:
+          type: array
+          items:
+            type: string
+        postings_count:
+          type: integer
+      required:
+      - companies_count
+      - company_names
+      - new_companies
+      - new_companies_count
+      - postings_count
+      - repeat_companies
+      - repeat_companies_count
+      - season
     ConductIncident:
       type: object
       properties:
@@ -2407,6 +2585,54 @@ components:
       - season_decision
       - semester
       - standing
+    EmploymentTrendList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmploymentTrendReport'
+      required:
+      - results
+    EmploymentTrendReport:
+      type: object
+      properties:
+        season:
+          type: string
+        registered:
+          type: integer
+        placed:
+          type: integer
+        placement_rate:
+          type: number
+          format: double
+        success_rate:
+          type: number
+          format: double
+        total_offers:
+          type: integer
+        companies_participated:
+          type: integer
+        median_ctc:
+          type: string
+          nullable: true
+        mean_ctc:
+          type: string
+          nullable: true
+        max_ctc:
+          type: string
+          nullable: true
+      required:
+      - companies_participated
+      - max_ctc
+      - mean_ctc
+      - median_ctc
+      - placed
+      - placement_rate
+      - registered
+      - season
+      - success_rate
+      - total_offers
     FeeApproval:
       type: object
       description: Rules 20 and 21 both require the challan or receipt to be produced.
@@ -2433,6 +2659,71 @@ components:
       required:
       - incident
       - recommendation
+    InterviewProgressList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterviewProgressRound'
+      required:
+      - results
+    InterviewProgressRound:
+      type: object
+      properties:
+        round_id:
+          type: integer
+        posting_id:
+          type: integer
+        posting_title:
+          type: string
+        company_name:
+          type: string
+        season:
+          type: string
+        seq:
+          type: integer
+        kind:
+          type: string
+        mode:
+          type: string
+        starts_at:
+          type: string
+          nullable: true
+        ends_at:
+          type: string
+          nullable: true
+        venue:
+          type: string
+        meeting_url:
+          type: string
+        capacity:
+          type: integer
+          nullable: true
+        stats:
+          type: object
+          additionalProperties: {}
+        candidates:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - candidates
+      - capacity
+      - company_name
+      - ends_at
+      - kind
+      - meeting_url
+      - mode
+      - posting_id
+      - posting_title
+      - round_id
+      - season
+      - seq
+      - starts_at
+      - stats
+      - venue
     InterviewRound:
       type: object
       properties:
@@ -3085,6 +3376,43 @@ components:
       properties:
         active_role:
           type: string
+    PlacementOutcomes:
+      type: object
+      properties:
+        season:
+          type: string
+        total_records:
+          type: integer
+        active_placements:
+          type: integer
+        on_campus_count:
+          type: integer
+        off_campus_count:
+          type: integer
+        fte_count:
+          type: integer
+        internship_count:
+          type: integer
+        with_offer_letter_count:
+          type: integer
+        not_joining_count:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - active_placements
+      - fte_count
+      - internship_count
+      - not_joining_count
+      - off_campus_count
+      - on_campus_count
+      - results
+      - season
+      - total_records
+      - with_offer_letter_count
     PlacementRecordDetail:
       type: object
       description: A student's own record, with what rules 22 and 24 still want from
@@ -3539,6 +3867,40 @@ components:
         * `absent` - Absent
         * `passed` - Passed
         * `failed` - Failed
+    SalaryDistributionReport:
+      type: object
+      properties:
+        season:
+          type: string
+        available:
+          type: boolean
+        total_placed:
+          type: integer
+        min_ctc:
+          type: string
+          nullable: true
+        max_ctc:
+          type: string
+          nullable: true
+        mean_ctc:
+          type: string
+          nullable: true
+        median_ctc:
+          type: string
+          nullable: true
+        brackets:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        distribution:
+          type: object
+          additionalProperties: {}
+        reason:
+          type: string
+      required:
+      - available
+      - season
     SanctionEnum:
       enum:
       - bar_next_two
@@ -3691,6 +4053,45 @@ components:
       required:
       - available
       - season
+    StudentStatus:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        is_placed:
+          type: boolean
+        active_placement:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        applications:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        interviews:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        offers:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        placement_records:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - active_placement
+      - applications
+      - interviews
+      - is_placed
+      - offers
+      - placement_records
+      - user_id
     SubmitOfferLetter:
       type: object
       properties:
@@ -3698,6 +4099,30 @@ components:
           type: integer
       required:
       - document_id
+    SuccessRateReport:
+      type: object
+      properties:
+        season:
+          type: string
+        available:
+          type: boolean
+        registered:
+          type: integer
+        placed:
+          type: integer
+        success_rate:
+          type: number
+          format: double
+        placement_rate:
+          type: number
+          format: double
+        debarred:
+          type: integer
+        reason:
+          type: string
+      required:
+      - available
+      - season
     TopicEnum:
       enum:
       - drive

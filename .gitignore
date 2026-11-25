@@ -68,3 +68,5 @@ opencode.json
 .idea/
 .vscode/
 *.swp
+~$*
+

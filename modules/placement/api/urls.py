@@ -23,6 +23,10 @@ urlpatterns = [
     path("applications", v.ApplicationListView.as_view(),
          name="placement-applications"),
     path("applications/apply", v.ApplyView.as_view(), name="placement-apply"),
+    path("applications/status", v.StudentStatusView.as_view(),
+         name="placement-application-status"),
+    path("student/status", v.StudentStatusView.as_view(),
+         name="placement-student-status"),
     path("applications/<int:pk>/transition", v.ApplicationTransitionView.as_view(),
          name="placement-application-transition"),
     path("applications/<int:pk>/history", au.ApplicationHistoryView.as_view(),
@@ -51,6 +55,8 @@ urlpatterns = [
     # interviews
     path("interviews/rounds", v.InterviewRoundListView.as_view(),
          name="placement-rounds"),
+    path("interviews/progress", v.InterviewProgressView.as_view(),
+         name="placement-interview-progress"),
     path("interviews/rounds/<int:pk>/candidates", v.RoundCandidatesView.as_view(),
          name="placement-round-candidates"),
     path("interviews/rounds/<int:pk>/outcome", v.RoundOutcomeView.as_view(),
@@ -96,6 +102,8 @@ urlpatterns = [
          name="placement-not-joining"),
     path("records/outstanding", cl.OutstandingLettersView.as_view(),
          name="placement-outstanding-letters"),
+    path("records/outcomes", v.PlacementOutcomesView.as_view(),
+         name="placement-record-outcomes"),
     path("records/off-campus", cl.OffCampusRecordView.as_view(),
          name="placement-off-campus-record"),
 
@@ -121,6 +129,14 @@ urlpatterns = [
     # seasons and statistics
     path("seasons", v.SeasonListView.as_view(), name="placement-seasons"),
     path("stats", v.StatsView.as_view(), name="placement-stats"),
+    path("reports/success-rate", v.ReportSuccessRateView.as_view(),
+         name="placement-report-success-rate"),
+    path("reports/participation-trends", v.ReportParticipationTrendsView.as_view(),
+         name="placement-report-participation-trends"),
+    path("reports/salary-distribution", v.ReportSalaryDistributionView.as_view(),
+         name="placement-report-salary-distribution"),
+    path("reports/employment-trends", v.ReportEmploymentTrendsView.as_view(),
+         name="placement-report-employment-trends"),
 
     # recruiter portal
     path("recruiters/invite", v.RecruiterInviteView.as_view(),

@@ -130,9 +130,16 @@ _CHAIRMAN = [
     "placement_cell.announcement.publish",
 ]
 
+#: Restricted read-only access for mentorship/networking
+#: (PC-UC-017, PC-BR-019, PC-BR-020, PC-AFR-058..060).
+_ALUMNI = [
+    "placement_cell.job_posting.view",
+]
+
 #: Keyed by the designation name as it exists in globals_designation.
 ROLE_GRANTS = {
     "student": _STUDENT,
+    "alumni": _ALUMNI,
     "placement_coordinator": _COORDINATOR,
     "placement_officer": _OFFICER,
     "placement_chairman": _CHAIRMAN,

@@ -173,6 +173,28 @@ def record_off_campus(*, season: str, user_id: int, company_id: int,
     return record
 
 
+@transaction.atomic
+def update_record(*, record_id: int, actor, **fields) -> PlacementRecord:
+    """PC-BR-029: TPO may update placement records for Students and Alumni.
+
+    Exceptions / Exclusions: Does not grant Alumni write access.
+    """
+    require(actor, P_MANAGE)
+    record = PlacementRecord.objects.select_for_update().filter(pk=record_id).first()
+    if record is None:
+        raise NotFoundError("No such placement record.")
+
+    allowed = {"ctc_lpa", "kind", "is_active"}
+    touched = []
+    for key, val in fields.items():
+        if key in allowed:
+            setattr(record, key, val)
+            touched.append(key)
+    if touched:
+        record.save(update_fields=[*touched, "updated_at"])
+    return record
+
+
 def outstanding(*, season: str | None = None) -> list[PlacementRecord]:
     """Placed students who still owe a signed letter. The office's worklist."""
     rows = (PlacementRecord.objects
@@ -181,3 +203,79 @@ def outstanding(*, season: str | None = None) -> list[PlacementRecord]:
     if season:
         rows = rows.filter(policy__season=season)
     return list(rows.order_by("policy__season", "company__name"))
+
+
+def placement_outcomes_view(*, actor, season: str | None = None) -> dict:
+    """PC-AFR-030: TPO-scoped view for tracking placement outcomes and final placement status."""
+    require(actor, P_MANAGE, "placement_cell.report.view")
+    from modules.directory import contracts as directory
+
+    qs = PlacementRecord.objects.select_related("company", "policy", "offer_letter")
+    if season:
+        qs = qs.filter(policy__season=season)
+    records = list(qs.order_by("-created_at"))
+
+    user_ids = [r.user_id for r in records]
+    people = directory.get_users(user_ids)
+
+    total = len(records)
+    active = sum(1 for r in records if r.is_active)
+    campus = sum(1 for r in records if r.source == "campus")
+    off_campus = sum(1 for r in records if r.source == "off_campus")
+    fte = sum(1 for r in records if r.kind == "fte")
+    internship = sum(1 for r in records if r.kind == "internship")
+    with_letter = sum(1 for r in records if r.offer_letter_id is not None)
+    not_joining = sum(1 for r in records if r.not_joining_declared_at is not None)
+
+    results = []
+    for r in records:
+        person = people.get(r.user_id)
+        if not r.is_active:
+            final_status = "inactive"
+        elif r.not_joining_declared_at is not None:
+            final_status = "not_joining"
+        else:
+            final_status = "placed"
+
+        results.append({
+            "record_id": r.pk,
+            "user_id": r.user_id,
+            "student_name": getattr(person, "display_name", "") or getattr(
+                person, "name", "") or "",
+            "username": getattr(person, "username", "") or "",
+            "programme": getattr(person, "programme", "") or "",
+            "discipline": getattr(person, "discipline", "") or "",
+            "season": r.policy.season,
+            "company_id": r.company_id,
+            "company_name": r.company.name,
+            "ctc_lpa": str(r.ctc_lpa) if r.ctc_lpa is not None else None,
+            "source": r.source,
+            "kind": r.kind,
+            "is_active": r.is_active,
+            "final_status": final_status,
+            "has_offer_letter": r.offer_letter_id is not None,
+            "offer_letter_submitted_at": (
+                r.offer_letter_submitted_at.isoformat()
+                if r.offer_letter_submitted_at else None
+            ),
+            "declared_not_joining": r.not_joining_declared_at is not None,
+            "not_joining_declared_at": (
+                r.not_joining_declared_at.isoformat()
+                if r.not_joining_declared_at else None
+            ),
+            "not_joining_reason": r.not_joining_reason,
+            "not_joining_was_late": r.not_joining_was_late,
+        })
+
+    return {
+        "season": season or "all",
+        "total_records": total,
+        "active_placements": active,
+        "on_campus_count": campus,
+        "off_campus_count": off_campus,
+        "fte_count": fte,
+        "internship_count": internship,
+        "with_offer_letter_count": with_letter,
+        "not_joining_count": not_joining,
+        "results": results,
+    }

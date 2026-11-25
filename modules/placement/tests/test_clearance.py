@@ -377,3 +377,41 @@ def test_declaring_not_joining_over_http_does_not_clear_the_hold(stub_iam, polic
 
     assert client.get(
         "/api/v1/placement/records/clearance").json()["cleared"] is False
+
+
+def test_tpo_can_update_student_and_alumni_placement_record(stub_iam, policy):
+    """PC-BR-029: TPO may update placement records for Students and Alumni."""
+    from decimal import Decimal
+
+    company = make_company()
+    # Student record
+    student_rec = service.record_off_campus(
+        season=policy.season, user_id=1001, company_id=company.pk,
+        ctc_lpa=Decimal("15.00"), kind="fte", actor=_actor())
+    # Alumni record (e.g. user_id 5001 who is alumni)
+    alumni_rec = service.record_off_campus(
+        season=policy.season, user_id=5001, company_id=company.pk,
+        ctc_lpa=Decimal("20.00"), kind="fte", actor=_actor())
+
+    # TPO updates student record
+    updated_st = service.update_record(
+        record_id=student_rec.pk, actor=_actor(),
+        ctc_lpa=Decimal("18.00"), kind="ppo")
+    assert updated_st.ctc_lpa == Decimal("18.00")
+    assert updated_st.kind == "ppo"
+
+    # TPO updates alumni record
+    updated_al = service.update_record(
+        record_id=alumni_rec.pk, actor=_actor(),
+        ctc_lpa=Decimal("25.00"))
+    assert updated_al.ctc_lpa == Decimal("25.00")
+
+    # Unprivileged cannot update
+    from conftest import make_principal
+    student_principal = make_principal(
+        user_id=1001, kind="student", permissions=())
+    with pytest.raises(PermissionDeniedError):
+        service.update_record(
+            record_id=alumni_rec.pk, actor=student_principal,
+            ctc_lpa=Decimal("30.00"))
+

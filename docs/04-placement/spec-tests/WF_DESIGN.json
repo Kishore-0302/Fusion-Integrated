@@ -1,0 +1,74 @@
+[
+{
+"test_id": "PCMS-WF-001",
+"source_id": "BW-PC-01 — TPO publication and eligible Student application; PC-BR-001, PC-BR-002, PC-BR-003, PC-BR-004, PC-BR-005",
+"purpose": "Exercise the TPO-managed publication path through an eligible Student application.",
+"preconditions": "A TPO is authorized. A Student has a complete profile if profile completeness is required and meets the posting's recorded eligibility criteria.",
+"action_or_input": "The TPO submits a posting with valid required content and chooses Publish. The Student applies to the published opportunity.",
+"expected_result": "The opportunity becomes Published. The Student's application is recorded as Applied.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-002",
+"source_id": "BW-PC-02 — direct Company publication and eligible Student application; PC-BR-001, PC-BR-002, PC-BR-003, PC-BR-004, PC-BR-006",
+"purpose": "Exercise the direct Company publication path through an eligible Student application.",
+"preconditions": "A Company/Recruiter is authorized to publish directly. A Student has a complete profile if profile completeness is required and meets the posting's recorded eligibility criteria.",
+"action_or_input": "The Company/Recruiter submits a posting with valid required content and chooses Direct Publish. The Student applies to the published opportunity.",
+"expected_result": "The opportunity becomes Published. The Student's application is recorded as Applied.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-003",
+"source_id": "BW-PC-03 — Company submission via TPO and eligible Student application; PC-BR-001, PC-BR-002, PC-BR-003, PC-BR-004, PC-BR-005, PC-BR-006",
+"purpose": "Exercise the Company submit-for-TPO path through TPO publication and Student application.",
+"preconditions": "The Company/Recruiter and TPO are authorized. A Student has a complete profile if profile completeness is required and meets the posting's recorded eligibility criteria.",
+"action_or_input": "The Company/Recruiter submits a posting with valid required content using the submit-for-TPO outcome. The TPO publishes the valid submitted posting. The Student applies.",
+"expected_result": "The posting first becomes Opportunity Submitted, then Opportunity Published. The Student's application is recorded as Applied.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-004",
+"source_id": "BW-PC-04 — Applied application to Company/Recruiter shortlist; PC-BR-001, PC-BR-002, PC-BR-009, PC-BR-030",
+"purpose": "Exercise the application-to-shortlist path.",
+"preconditions": "A valid opportunity is Published, and a Student meets its eligibility criteria and profile-completeness condition if required.",
+"action_or_input": "The Student applies. The Company/Recruiter reviews the application belonging to its opportunity and records the Shortlist outcome.",
+"expected_result": "The application is recorded first as Applied and then as Shortlisted.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-005",
+"source_id": "BW-PC-05 — Company shortlist to TPO-coordinated interview; PC-BR-009, PC-BR-011, PC-BR-012, PC-BR-030",
+"purpose": "Exercise TPO-coordinated interview scheduling after Company shortlisting.",
+"preconditions": "An application for a Company opportunity is Applied. The TPO is authorized.",
+"action_or_input": "The Company/Recruiter records the Shortlist outcome. The TPO schedules an interview with complete details: date, time slot, and online or offline mode.",
+"expected_result": "The application becomes Shortlisted, then Interview Scheduled.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-006",
+"source_id": "BW-PC-06 — Student application to Company-scheduled interview; PC-BR-001, PC-BR-002, PC-BR-009, PC-BR-011, PC-BR-012, PC-BR-030",
+"purpose": "Exercise Company-led interview scheduling after an eligible application and shortlist.",
+"preconditions": "A Company opportunity is Published. A Student meets its eligibility criteria and profile-completeness condition if required. The Company/Recruiter is authorized for the resulting application.",
+"action_or_input": "The Student applies. The Company/Recruiter records the Shortlist outcome and schedules an interview with complete details: date, time slot, and online or offline mode.",
+"expected_result": "The application becomes Applied, then Shortlisted, then Interview Scheduled.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-007",
+"source_id": "BW-PC-07 — offer extension from Interview Scheduled and Student acceptance with placement update; PC-BR-009, PC-BR-013, PC-BR-014, PC-BR-015, PC-BR-030",
+"purpose": "Exercise offer extension from an Interview Scheduled application and acceptance within the represented deadline.",
+"preconditions": "An application is Interview Scheduled. The Company/Recruiter is authorized for the application, and an offer-response deadline is represented.",
+"action_or_input": "The Company/Recruiter extends the offer. Before the represented deadline, the Student accepts.",
+"expected_result": "The offer becomes Offer Extended, then Offer Accepted. The placement record is updated.",
+"test_type": "workflow"
+},
+{
+"test_id": "PCMS-WF-008",
+"source_id": "BW-PC-08 — offer extension from Shortlisted and Student rejection; PC-BR-009, PC-BR-013, PC-BR-015, PC-BR-030",
+"purpose": "Exercise offer extension directly from a Shortlisted application and rejection within the represented deadline.",
+"preconditions": "An application is Shortlisted and has not been scheduled for interview. The Company/Recruiter is authorized for the application, and an offer-response deadline is represented.",
+"action_or_input": "The Company/Recruiter extends the offer. Before the represented deadline, the Student rejects it.",
+"expected_result": "The offer becomes Offer Extended, then Offer Rejected.",
+"test_type": "workflow"
+}
+]
